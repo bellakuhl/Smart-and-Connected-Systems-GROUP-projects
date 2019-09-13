@@ -2,37 +2,31 @@
 #include <stdlib.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/timers.h"
 
 #include "retro_clock.h"
 
-void retro_clock_init(retro_clock_t *clock) 
-{
-    clock->clock_mode = RC_MODE_NOT_SET;
-    clock->clock_time.hours = 0;
-    clock->clock_time.minutes = 0;
-    clock->clock_time.seconds = 0;
-
-    clock->alarm_time.hours = 0;
-    clock->alarm_time.minutes = 0;
-    clock->alarm_time.seconds = 0;
-}
-
+static retro_clock_t g_clock;
 
 void app_main(void)
 {
+    retro_clock_init(&g_clock);
+
     retro_clock_display_init();
+    retro_clock_hands_init(&g_clock);
+    retro_clock_io_init(&g_clock);
 
-    retro_clock_t *clock = (retro_clock_t *)malloc(sizeof(retro_clock_t));
-    if (clock == NULL) {
-        retro_clock_display_fatal_error("FAILED TO ALLOCATE MEMORY");
-        return;
-    }
+    retro_clock_register_update_callback(&g_clock, retro_clock_hands_update);
+    retro_clock_register_update_callback(&g_clock, retro_clock_display_update);
+    retro_clock_register_update_callback(&g_clock, retro_clock_io_update);
 
-    retro_clock_init(clock);
-    retro_clock_hands_init(clock);
-    retro_clock_io_init(clock);
+    retro_clock_time_t time = {
+        .hours=15,
+        .minutes=44,
+        .seconds=0
+    };
 
-    // TOOD: Define tasks and timers for running the clock
-    // and changing the modes.
+    retro_clock_set_time(&g_clock, time);
+    retro_clock_change_mode(&g_clock, RC_MODE_CLOCK);
 }
 

@@ -5,8 +5,9 @@ void retro_clock_io_init(retro_clock_t *clock)
 {
 }
 
-void retro_clock_io_update(char *message)
+void retro_clock_io_update(retro_clock_t *clock)
 {
+    printf("IO Update Called.\n");
 }
 
 void retro_clock_io_main(retro_clock_t *clock)
