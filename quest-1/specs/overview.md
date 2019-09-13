@@ -15,7 +15,7 @@ be linked to as the components are introduced.
 
 The software for this clock is organized as the state machine diagrammed below:
 
-![Retro Clock Diagram](../../images/state_diagram.jpg)
+![Retro Clock Diagram](../images/state_diagram.jpg)
 
 
 
