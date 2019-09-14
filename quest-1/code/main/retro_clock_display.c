@@ -11,7 +11,6 @@ void retro_clock_display_init()
 
 void retro_clock_display_update(retro_clock_t *clock)
 {
-    printf("Dislay update called\n");
 }
 
 

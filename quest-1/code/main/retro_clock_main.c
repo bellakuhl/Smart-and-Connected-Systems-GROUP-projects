@@ -8,18 +8,8 @@
 
 static retro_clock_t g_clock;
 
-void app_main(void)
+void example_sound_alarm()
 {
-    retro_clock_init(&g_clock);
-
-    retro_clock_display_init();
-    retro_clock_hands_init(&g_clock);
-    retro_clock_io_init(&g_clock);
-
-    retro_clock_register_update_callback(&g_clock, retro_clock_hands_update);
-    retro_clock_register_update_callback(&g_clock, retro_clock_display_update);
-    retro_clock_register_update_callback(&g_clock, retro_clock_io_update);
-
     retro_clock_time_t time = {
         .hours=15,
         .minutes=44,
@@ -38,5 +28,20 @@ void app_main(void)
     retro_clock_change_mode(&g_clock, RC_MODE_CLOCK);
     vTaskDelay(20000/portTICK_PERIOD_MS);
     retro_clock_alarm_dismiss(&g_clock);
+}
+
+void app_main(void)
+{
+    retro_clock_init(&g_clock);
+
+    retro_clock_display_init();
+    retro_clock_hands_init(&g_clock);
+    retro_clock_io_init(&g_clock);
+
+    retro_clock_register_update_callback(&g_clock, retro_clock_hands_update);
+    retro_clock_register_update_callback(&g_clock, retro_clock_display_update);
+    retro_clock_register_update_callback(&g_clock, retro_clock_io_update);
+
+//    example_sound_alarm();
 }
 
