@@ -1,33 +1,22 @@
-#include <stdlib.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-//#include "driver/timer.h"
+#include "driver/timer.h"
 #include "retro_clock.h"
 
-
-#include <stdio.h>
-#define MAX_UPDATE_CALLBACKS 3
-//#define TIMER_DIVIDER 16
-//#define TIMER_SCALE (TIMER_BASE_CLK / TIMER_DIVIDER)
+#define MAX_UPDATE_CALLBACKS 4
 
 struct clock_internals 
 {
     clock_update_callback update_cb[MAX_UPDATE_CALLBACKS];
     int update_cb_count;
-
-    /*
-    timer_group_t timer_group;
-    timer_idx_t timer_index;
-    timer_config_t timer_config;
-    */
-
-    xTaskHandle update_task;
+    xTaskHandle task_call_updates;
+    xTaskHandle task_tick_clock;
 }; 
 
-
-static void retro_clock_update(void *clk)
+static void retro_clock_tick(void *clk) 
 {
-    while (1) {
+    while (1) 
+    {
         retro_clock_t *clock = (retro_clock_t *)clk;
 
         clock->clock_time.seconds += 1;
@@ -46,46 +35,36 @@ static void retro_clock_update(void *clk)
             clock->clock_time.hours = 0;
         }
 
-        fflush(stdout);
-        vTaskDelay(1000/portTICK_PERIOD_MS);
+        if (clock->alarm_state == RC_ALARM_STATE_ENABLED) {
+            bool is_hour = clock->clock_time.hours == clock->alarm_time.hours;
+            bool is_minute = clock->clock_time.minutes == clock->alarm_time.minutes;
+            bool is_second = clock->clock_time.seconds == clock->alarm_time.seconds;
 
-        for (int i = 0; i < clock->internals->update_cb_count; i++) {
-            clock->internals->update_cb[i](clock);
+            if (is_hour && is_minute && is_second) {
+                retro_clock_change_mode(clock, RC_MODE_IN_ALARM);
+            }
         }
+
+        vTaskDelay(1000/portTICK_PERIOD_MS);
     }
 }
 
+static void retro_clock_notify_update(retro_clock_t *clock)
+{
+    for (int i = 0; i < clock->internals->update_cb_count; i++) {
+        clock->internals->update_cb[i](clock);
+    }
+}
 
-/*
-static void IRAM_ATTR retro_clock_isr(void *clk) 
+static void task_retro_clock_update(void *clk)
 {
     retro_clock_t *clock = (retro_clock_t *)clk;
-
-    double seconds;
-
-    timer_get_counter_time_sec(
-        clock->internals->timer_group,
-        clock->internals->timer_index,
-        &seconds);
-
-    if (seconds >= 86400) 
+    while (1) 
     {
-        seconds = 0;
-        timer_set_counter_value(
-            clock->internals->timer_group,
-            clock->internals->timer_index,
-            0x0LL);
+        retro_clock_notify_update(clock);
+        vTaskDelay(1000/portTICK_PERIOD_MS);
     }
-
-    uint8_t hours = (uint8_t)(seconds / 3600);
-    uint8_t minutes = (uint8_t)(seconds - (3600 * hours))/60;
-    uint8_t sec = (uint8_t)(seconds - (3600 * hours) - (60 * minutes));
-
-    clock->clock_time.hours = hours;
-    clock->clock_time.minutes = minutes;
-    clock->clock_time.seconds = sec; 
 }
-*/
 
 
 void retro_clock_init(retro_clock_t *clock) 
@@ -107,50 +86,8 @@ void retro_clock_init(retro_clock_t *clock)
     }
 
     clock->internals->update_cb_count = 0;
-    clock->internals->update_task = NULL;
-/*
-    timer_config_t timer_config = {
-        .alarm_en = true,
-        .counter_en = TIMER_PAUSE, 
-        .intr_type = TIMER_INTR_LEVEL,
-        .counter_dir = TIMER_COUNT_UP,
-        .auto_reload = true,
-        .divider = TIMER_DIVIDER
-    };
-
-    clock->internals->timer_group = TIMER_GROUP_0;
-    clock->internals->timer_index = 0;
-    clock->internals->timer_config = timer_config;
-
-    timer_init(
-        clock->internals->timer_group, 
-        clock->internals->timer_index, 
-        &timer_config);
-
-    timer_set_counter_value(
-        clock->internals->timer_group,
-        clock->internals->timer_index,
-        0x0LL
-    );
-
-    timer_set_alarm_value(
-        clock->internals->timer_group,
-        clock->internals->timer_index,
-        1 * TIMER_SCALE // 1 second counting
-    );
-
-    timer_enable_intr(
-        clock->internals->timer_group,
-        clock->internals->timer_index);
-
-    timer_isr_register(
-        clock->internals->timer_group,
-        clock->internals->timer_index,
-        retro_clock_isr,
-        (void *) clock, 
-        ESP_INTR_FLAG_IRAM, 
-        NULL);
-    */
+    clock->internals->task_call_updates = NULL;
+    clock->internals->task_tick_clock = NULL;
 }
 
 
@@ -197,53 +134,56 @@ void retro_clock_change_mode(retro_clock_t *clock, retro_clock_mode_t mode)
     }
 
     clock->clock_mode = mode;
+    retro_clock_notify_update(clock);
 }
+
 
 void retro_clock_set_time(retro_clock_t *clock, retro_clock_time_t new_time)
 {
     clock->clock_time.hours = new_time.hours;
     clock->clock_time.minutes = new_time.minutes;
     clock->clock_time.seconds = new_time.seconds;
+
+    retro_clock_notify_update(clock);
 }
 
 
 void retro_clock_start(retro_clock_t *clock) 
 {
-    if (clock->internals->update_task != NULL) {
+    if (clock->internals->task_call_updates != NULL) {
         return;
     }
 
-    /*
-    timer_start(
-        clock->internals->timer_group, 
-        clock->internals->timer_index);
-    */
+    xTaskCreate(
+        retro_clock_tick, 
+        "clock_tick", 
+        4096,
+        (void *)clock,
+        configMAX_PRIORITIES,
+        &clock->internals->task_tick_clock
+    );
 
     xTaskCreate(
-        retro_clock_update, 
+        task_retro_clock_update, 
         "clock_update", 
         4096,
         (void *)clock,
         configMAX_PRIORITIES - 3,
-        &clock->internals->update_task
+        &clock->internals->task_call_updates
     );
 }
 
 
 void retro_clock_stop(retro_clock_t *clock)
 {
-    if (clock->internals->update_task == NULL) {
+    if (clock->internals->task_call_updates == NULL) {
         return;
     }
-    
-    /*
-        timer_pause(
-            clock->internals->timer_group, 
-            clock->internals->timer_index);
-    */
 
-    vTaskDelete(clock->internals->update_task);
-    clock->internals->update_task = NULL;
+    vTaskDelete(clock->internals->task_tick_clock);
+    vTaskDelete(clock->internals->task_call_updates);
+    clock->internals->task_call_updates = NULL;
+    clock->internals->task_tick_clock = NULL;
 }
 
 
@@ -254,27 +194,17 @@ void retro_clock_alarm_set_state(retro_clock_t *clock, retro_clock_alarm_state_t
         return;
     }
 
-    if (alarm_state == RC_ALARM_STATE_NOT_ENABLED) {
-        // TODO: Disable the alarm
-    }
-
-    if (alarm_state == RC_ALARM_STATE_ENABLED) {
-        // TODO: Enable the alarm
-    }
-
     clock->alarm_state = alarm_state;
+    retro_clock_notify_update(clock);
 }
 
 
 void retro_clock_alarm_set_time(retro_clock_t *clock, retro_clock_time_t new_time)
 {
-    clock->clock_time.hours = new_time.hours;
-    clock->clock_time.minutes = new_time.minutes;
-    clock->clock_time.seconds = new_time.seconds;
-
-    if (clock->alarm_state == RC_ALARM_STATE_ENABLED) {
-        // TODO: Update timer if enabled
-    }
+    clock->alarm_time.hours = new_time.hours;
+    clock->alarm_time.minutes = new_time.minutes;
+    clock->alarm_time.seconds = new_time.seconds;
+    retro_clock_notify_update(clock);
 }
 
 
