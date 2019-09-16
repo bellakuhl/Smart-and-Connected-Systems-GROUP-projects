@@ -7,6 +7,7 @@
 #define HW_TIMER_IDX 0
 #define HW_TIMER_CLK_DIVIDER 65536
 #define HW_TIMER_TIME_SCALE (TIMER_BASE_CLK/HW_TIMER_CLK_DIVIDER)
+#define HW_TIMER_MAX_VALUE (86400 * HW_TIMER_TIME_SCALE) // 24 hr = 86400
 
 #define MAX_UPDATE_CALLBACKS 4
 
@@ -18,6 +19,13 @@ struct clock_internals
     xTaskHandle task_call_updates;
     xTaskHandle task_tick_clock;
 };
+
+static void IRAM_ATTR retro_clock_alarm_isr(void *arg)
+{
+    retro_clock_t *clock = (retro_clock_t *)arg;
+    clock->clock_mode = RC_MODE_IN_ALARM;
+    timer_group_intr_clr_in_isr(HW_TIMER_GROUP, HW_TIMER_IDX);
+}
 
 
 static void timer_to_clock(uint64_t value, retro_clock_time_t *time)
@@ -39,6 +47,21 @@ static uint64_t clock_to_timer(retro_clock_time_t* time)
     return (uint64_t)(seconds * HW_TIMER_TIME_SCALE);
 }
 
+static void clock_enable_alarm_if_necessary(retro_clock_t *clock)
+{
+    if (clock->alarm_state == RC_ALARM_STATE_NOT_ENABLED) {
+        timer_set_alarm(HW_TIMER_GROUP, HW_TIMER_IDX, TIMER_ALARM_DIS);
+    }
+    else {
+        // If it's earlier than the alarm (or equal to in the case of midnight)
+        // enable the alarm on the timer.
+        uint64_t clock_value = clock_to_timer(&(clock->clock_time));
+        uint64_t alarm_value = clock_to_timer(&(clock->alarm_time));
+        if (clock_value <= alarm_value) {
+            timer_set_alarm(HW_TIMER_GROUP, HW_TIMER_IDX, TIMER_ALARM_EN);
+        }
+    }
+}
 
 static void retro_clock_tick(void *clk)
 {
@@ -48,10 +71,21 @@ static void retro_clock_tick(void *clk)
     {
         uint64_t value;
         timer_get_counter_value(HW_TIMER_GROUP, HW_TIMER_IDX, &value);
+
+        // It's midnight! Reset to zero.
+        if (value > HW_TIMER_MAX_VALUE) {
+            value = 0;
+            timer_set_counter_value(HW_TIMER_GROUP, HW_TIMER_IDX, 0);
+        }
+
         timer_to_clock(value, &(clock->clock_time));
+        clock_enable_alarm_if_necessary(clock);
+
+        // Read the clock value every 500ms.
         vTaskDelay(500/portTICK_PERIOD_MS);
     }
 }
+
 
 static void retro_clock_notify_update(retro_clock_t *clock)
 {
@@ -59,6 +93,7 @@ static void retro_clock_notify_update(retro_clock_t *clock)
         clock->internals->update_cb[i](clock);
     }
 }
+
 
 static void task_retro_clock_update(void *clk)
 {
@@ -103,6 +138,7 @@ void retro_clock_init(retro_clock_t *clock)
     };
 
     timer_init(HW_TIMER_GROUP, HW_TIMER_IDX, &hw_timer_config);
+    timer_isr_register(HW_TIMER_GROUP, HW_TIMER_IDX, retro_clock_alarm_isr, clock, ESP_INTR_FLAG_IRAM, NULL);
 }
 
 
@@ -216,6 +252,7 @@ void retro_clock_alarm_set_state(retro_clock_t *clock, retro_clock_alarm_state_t
     }
 
     clock->alarm_state = alarm_state;
+    clock_enable_alarm_if_necessary(clock);
     retro_clock_notify_update(clock);
 }
 
@@ -225,6 +262,8 @@ void retro_clock_alarm_set_time(retro_clock_t *clock, retro_clock_time_t new_tim
     clock->alarm_time.hours = new_time.hours;
     clock->alarm_time.minutes = new_time.minutes;
     clock->alarm_time.seconds = new_time.seconds;
+
+    timer_set_alarm_value(HW_TIMER_GROUP, HW_TIMER_IDX, clock_to_timer(&new_time));
     retro_clock_notify_update(clock);
 }
 
@@ -234,6 +273,7 @@ void retro_clock_alarm_dismiss(retro_clock_t *clock)
     if (clock->clock_mode == RC_MODE_IN_ALARM)
     {
         retro_clock_change_mode(clock, RC_MODE_CLOCK);
+        timer_set_alarm(HW_TIMER_GROUP, HW_TIMER_IDX, TIMER_ALARM_DIS);
     }
 }
 
