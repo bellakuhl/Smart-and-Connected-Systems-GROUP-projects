@@ -5,7 +5,7 @@
 #include "freertos/task.h"
 #include "esp_attr.h"
 
-#include "soc/mcpwm_periph.h"
+#include "driver/mcpwm.h"
 
 #include "servo.h"
 
