@@ -1,6 +1,8 @@
 #include "retro_clock.h"
 #include "lib/alphanumeric_display.h"
 
+#include <stdio.h>
+
 
 void retro_clock_display_init()
 {
