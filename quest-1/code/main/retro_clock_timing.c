@@ -24,7 +24,8 @@ static void IRAM_ATTR retro_clock_alarm_isr(void *arg)
 {
     retro_clock_t *clock = (retro_clock_t *)arg;
     clock->clock_mode = RC_MODE_IN_ALARM;
-    timer_group_intr_clr_in_isr(HW_TIMER_GROUP, HW_TIMER_IDX);
+    TIMERG0.int_clr_timers.t0 = 1;
+    //timer_group_intr_clr_in_isr(HW_TIMER_GROUP, HW_TIMER_IDX);
 }
 
 

@@ -1,4 +1,4 @@
-idf_component_register(SRCS 
+set(COMPONENT_SRCS 
                     "lib/alphanumeric_display.c"
                     "lib/console_io.c"
                     "lib/servo.c"
@@ -6,5 +6,8 @@ idf_component_register(SRCS
                     "retro_clock_io.c"
                     "retro_clock_hands.c"
                     "retro_clock_timing.c"
-                    "retro_clock_main.c"
-                    INCLUDE_DIRS "")
+                    "retro_clock_main.c")
+    set(COMPONENT_ADD_INCLUDEDIRS "")
+
+
+register_component()
