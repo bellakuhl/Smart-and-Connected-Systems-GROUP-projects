@@ -5,7 +5,7 @@
 #include "freertos/task.h"
 #include "esp_attr.h"
 
-#include "soc/mcpwm_periph.h"
+#include "driver/mcpwm.h"
 
 #include "servo.h"
 
@@ -67,4 +67,3 @@ void servo_set_angle_degrees(servo_config_t *config, int32_t degrees)
     //fflush(stdout);
     vTaskDelay(10);
 }
-
