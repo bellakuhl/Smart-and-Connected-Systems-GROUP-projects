@@ -45,7 +45,7 @@ typedef void (*clock_update_callback)(retro_clock_t *clock);
 void retro_clock_init(retro_clock_t *clock);
 void retro_clock_change_mode(retro_clock_t *clock, retro_clock_mode_t mode);
 
-clock_update_handle 
+clock_update_handle
 retro_clock_register_update_callback(retro_clock_t *clock, clock_update_callback callback);
 
 // Time functions
@@ -61,7 +61,6 @@ void retro_clock_alarm_dismiss(retro_clock_t *clock);
 // Display Functions
 void retro_clock_display_init();
 void retro_clock_display_update(retro_clock_t *clock);
-void retro_clock_display_fatal_error(char *message);
 
 // Clock Hands Functions
 void retro_clock_hands_init(retro_clock_t *clock);
