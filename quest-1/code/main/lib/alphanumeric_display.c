@@ -199,24 +199,20 @@ static void i2c_scanner()
 static void task_write_display_buffers()
 {
     // Continually writes the same command
-    while (1)
-	{
-		i2c_cmd_handle_t cmd4 = i2c_cmd_link_create();
-		i2c_master_start(cmd4);
-		i2c_master_write_byte(cmd4, ( SLAVE_ADDR << 1 ) | WRITE_BIT, ACK_CHECK_EN);
-		i2c_master_write_byte(cmd4, (uint8_t)0x00, ACK_CHECK_EN);
+    i2c_cmd_handle_t cmd4 = i2c_cmd_link_create();
+    i2c_master_start(cmd4);
+    i2c_master_write_byte(cmd4, ( SLAVE_ADDR << 1 ) | WRITE_BIT, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd4, (uint8_t)0x00, ACK_CHECK_EN);
 
-		for (uint8_t i=0; i< ALPHA_DISPLAYBUFFER_SIZE; i++)
-		{
-			i2c_master_write_byte(cmd4, ALPHA_DISPLAYBUFFER_G[i] & 0xFF, ACK_CHECK_EN);
-			i2c_master_write_byte(cmd4, ALPHA_DISPLAYBUFFER_G[i] >> 8, ACK_CHECK_EN);
-		}
-
-		i2c_master_stop(cmd4);
-		i2c_master_cmd_begin(I2C_EXAMPLE_MASTER_NUM, cmd4, 1000 / portTICK_RATE_MS);
-		i2c_cmd_link_delete(cmd4);
+    for (uint8_t i=0; i< ALPHA_DISPLAYBUFFER_SIZE; i++)
+    {
+        i2c_master_write_byte(cmd4, ALPHA_DISPLAYBUFFER_G[i] & 0xFF, ACK_CHECK_EN);
+        i2c_master_write_byte(cmd4, ALPHA_DISPLAYBUFFER_G[i] >> 8, ACK_CHECK_EN);
     }
 
+    i2c_master_stop(cmd4);
+    i2c_master_cmd_begin(I2C_EXAMPLE_MASTER_NUM, cmd4, 1000 / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd4);
 }
 
 
@@ -268,6 +264,7 @@ void alphadisplay_write_ascii(uint16_t digit, char a)
 
 	uint16_t font = alphafonttable[(uint8_t)a];
 	ALPHA_DISPLAYBUFFER_G[digit] = font;
+    task_write_display_buffers();
 }
 
 
@@ -315,6 +312,33 @@ int alphadisplay_no_blink()
 	  return ret;
 }
 
+// Set Blink
+int alphadisplay_set_blink(uint8_t freq)
+{
+	  int ret;
+
+      uint8_t blink_bits = 0; // No blink
+      if (freq == ALPHADISPLAY_BLINK_1HZ) {
+          blink_bits = 2;
+      }
+      else if (freq == ALPHADISPLAY_BLINK_2HZ) {
+          blink_bits = 1;
+      }
+      else if (freq == ALPHADISPLAY_BLINK_HALF_HZ) {
+          blink_bits = 3;
+      }
+
+	  i2c_cmd_handle_t cmd2 = i2c_cmd_link_create();
+	  i2c_master_start(cmd2);
+	  i2c_master_write_byte(cmd2, ( SLAVE_ADDR << 1 ) | WRITE_BIT, ACK_CHECK_EN);
+	  i2c_master_write_byte(cmd2, HT16K33_BLINK_CMD | HT16K33_BLINK_DISPLAYON | blink_bits, ACK_CHECK_EN);
+	  i2c_master_stop(cmd2);
+	  ret = i2c_master_cmd_begin(I2C_EXAMPLE_MASTER_NUM, cmd2, 1000 / portTICK_RATE_MS);
+	  i2c_cmd_link_delete(cmd2);
+	  vTaskDelay(200 / portTICK_RATE_MS);
+	  return ret;
+}
+
 // Set Brightness
 int alphadisplay_set_brightness_max(uint8_t val)
 {
@@ -333,7 +357,7 @@ int alphadisplay_set_brightness_max(uint8_t val)
 
 int alphadisplay_init()
 {
-    int ret;
+    int ret = ESP_OK;
     alphadisplay_i2c_init();
 
     // Turn on alpha oscillator
@@ -355,6 +379,8 @@ void alphadisplay_start()
         // already running...
         return;
     }
+    /*
+    This was a bad idea.
     xTaskCreate(
         task_write_display_buffers,
         "task_write_display_buffers",
@@ -362,6 +388,7 @@ void alphadisplay_start()
         NULL,
         5,
         write_display_task);
+    */
 }
 
 void alphadisplay_stop()
@@ -370,6 +397,7 @@ void alphadisplay_stop()
         // already stopped...
         return;
     }
-    vTaskDelete(write_display_task);
+    //
+    //vTaskDelete(write_display_task);
 }
 

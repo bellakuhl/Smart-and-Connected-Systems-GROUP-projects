@@ -5,7 +5,7 @@
 
 #define HW_TIMER_GROUP TIMER_GROUP_0
 #define HW_TIMER_IDX 0
-#define HW_TIMER_CLK_DIVIDER 65536
+#define HW_TIMER_CLK_DIVIDER 32768
 #define HW_TIMER_TIME_SCALE (TIMER_BASE_CLK/HW_TIMER_CLK_DIVIDER)
 #define HW_TIMER_MAX_VALUE (86400 * HW_TIMER_TIME_SCALE) // 24 hr = 86400
 
@@ -25,7 +25,6 @@ static void IRAM_ATTR retro_clock_alarm_isr(void *arg)
     retro_clock_t *clock = (retro_clock_t *)arg;
     clock->clock_mode = RC_MODE_IN_ALARM;
     TIMERG0.int_clr_timers.t0 = 1;
-    //timer_group_intr_clr_in_isr(HW_TIMER_GROUP, HW_TIMER_IDX);
 }
 
 
@@ -50,7 +49,10 @@ static uint64_t clock_to_timer(retro_clock_time_t* time)
 
 static void clock_enable_alarm_if_necessary(retro_clock_t *clock)
 {
-    if (clock->alarm_state == RC_ALARM_STATE_NOT_ENABLED) {
+    if (clock->clock_mode == RC_MODE_SET_ALARM) {
+        timer_set_alarm(HW_TIMER_GROUP, HW_TIMER_IDX, TIMER_ALARM_DIS);
+    }
+    else if (clock->alarm_state == RC_ALARM_STATE_NOT_ENABLED) {
         timer_set_alarm(HW_TIMER_GROUP, HW_TIMER_IDX, TIMER_ALARM_DIS);
     }
     else {
@@ -63,6 +65,12 @@ static void clock_enable_alarm_if_necessary(retro_clock_t *clock)
         }
     }
 }
+
+static void disable_timer_alarm(retro_clock_t *clock)
+{
+    timer_set_alarm(HW_TIMER_GROUP, HW_TIMER_IDX, TIMER_ALARM_DIS);
+}
+
 
 static void retro_clock_tick(void *clk)
 {
@@ -155,6 +163,8 @@ clock_update_handle retro_clock_register_update_callback(
     clock->internals
          ->update_cb[clock->internals->update_cb_count++] = function;
 
+    function(clock);
+
     return clock->internals->update_cb_count;
 }
 
@@ -176,6 +186,7 @@ void retro_clock_change_mode(retro_clock_t *clock, retro_clock_mode_t mode)
             break;
 
         case RC_MODE_SET_ALARM:
+            disable_timer_alarm(clock);
             break;
 
         case RC_MODE_IN_ALARM:
