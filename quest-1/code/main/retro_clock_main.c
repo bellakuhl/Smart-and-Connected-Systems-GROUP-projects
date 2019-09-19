@@ -53,12 +53,11 @@ void app_main(void)
 
     retro_clock_display_init();
     retro_clock_hands_init(&g_clock);
-    retro_clock_io_init(&g_clock);
 
     retro_clock_register_update_callback(&g_clock, retro_clock_hands_update);
     retro_clock_register_update_callback(&g_clock, retro_clock_display_update);
-    retro_clock_register_update_callback(&g_clock, retro_clock_io_update);
 
-    example_sound_alarm();
+    retro_clock_io_init(&g_clock);
+    retro_clock_io_main(&g_clock);
 }
 
