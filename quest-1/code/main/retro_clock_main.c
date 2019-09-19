@@ -23,7 +23,7 @@ void example_sound_alarm()
     };
 
 
-    retro_clock_change_mode(&g_clock, RC_MODE_SET_TIME);
+    /*retro_clock_change_mode(&g_clock, RC_MODE_SET_TIME);
     vTaskDelay(1000/portTICK_PERIOD_MS);
 
     retro_clock_set_time(&g_clock, time);
@@ -43,7 +43,7 @@ void example_sound_alarm()
     retro_clock_alarm_set_time(&g_clock, alarm_time);
     vTaskDelay(10000/portTICK_PERIOD_MS);
 
-    retro_clock_alarm_dismiss(&g_clock);
+    retro_clock_alarm_dismiss(&g_clock);*/
 }
 
 

@@ -9,14 +9,14 @@
 	clock->clock_mode = mode;
 }*/
 
-bool hour_is_valid(char hour[]){
+bool hour_is_valid(char *hour){
 	// keeps asking till it gets a valid hour
 	int hour_int = atoi(hour);
 	if ( hour_int < 0 || hour_int >= 24){
 		return false;
 	} else{
 		for (int i = 0; i<1024; i++){
-			if (!isdigit(hour[0])){
+			if (!isdigit((int)hour[0])){
 				return false;
 			}
 		}
@@ -24,14 +24,14 @@ bool hour_is_valid(char hour[]){
 	return true;
 }
 
-bool minute_is_valid(char minute[]){
+bool minute_is_valid(char *minute){
 	// keeps asking till it gets a valid hour
 	int min_int = atoi(minute);
 	if ( min_int < 0 || min_int >= 60){
 		return false;
 	} else{
 		for (int i = 0; i<1024; i++){
-			if (!isdigit(minute[0])){
+			if (!isdigit((int)minute[0])){
 				return false;
 			}
 		}
@@ -210,4 +210,3 @@ void retro_clock_io_main(retro_clock_t *clock)
         }
     }
 }
-
