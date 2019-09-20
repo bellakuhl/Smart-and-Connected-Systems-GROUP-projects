@@ -84,7 +84,7 @@ One of the potential issues that we'd face would be knowing which clock(s) from 
 ## Supporting Artifacts
 
 - [Link to repo](https://github.com/BU-EC444/Team15-Kuhl-Reeve-Rossi/tree/master/quest-1)
-- [Demo Video](https://drive.google.com/file/d/19ph8pJgsHekSAIAexwMMzVPk7IlnPV5K/view?usp=sharing)
+- [Demo Video](https://youtu.be/RS9ZWK7hZXk)
 
 
 ## References
