@@ -12,7 +12,37 @@ For this quest we designed the clock by breaking it down into three subsystems:
 * Time Management - Joseph Rossi
 * Outputs - Isabella Kuhl
 
-The input subsystem used a console interface to allow the user to take the following
+This breakdown allowed us to work failry independently after we agreed on a deisgn and a way
+to interface between out code. Details about the various subsystems can be found in the
+[Solution Design](#solution-design) or in the [clock specifications](./specs/overview.md).
+
+## Evaluation Criteria
+
+We tested the functionality by following this test protocol:
+
+1. Power up the clock
+    * Check the display blinks '----'
+2. Follow the console prompt to set the time
+    * The display should be blinking
+    * The hours and minutes should display
+    * The display should stop blinking when set
+    * The hands should start rotating clockwise.
+3. Via the console, set an alarm time 1 minute after the current time.
+    * The display should be blinking.
+    * Once, set, the clock should return to displaying the time.
+4. Via the console, enable the alarm.
+5. Wait one minute
+    * The display should flash "ALRM"
+6. Press 'd' to dismiss the alarm.
+    * The user should be prompted to type the word "dismiss" to turn
+      off the alarm.
+    * The clock should go back to displaying the time without flashing.
+
+## Solution Design
+> The design is detailed in the specification documents in the [specs](./specs) folder.
+> A good place to start is with the [Overview](./specs/Overview.md).
+
+The input subsystem implemented a console interface that allows a user to take the following
 actions:
 
 * Set Time
@@ -20,52 +50,23 @@ actions:
 * Enable Alarm
 * Disable Alarm (also used to dismiss an active alarm)
 
-The input system would then translate these actions into API calls into the timekeeping 
-system which would propaage state and data changes to the outputs.  We used the UART 
-controller to allow the user to take action via the console. The time keeping subsystem
-used a hardware timer to keep time with a timer alarm triggering an interrupt to sound
-the alarm. The timekeeping subsystem setup tasks to notify observers of time or mode
-changes using callbacks.
+When the user takes action, time keeping APIs get called to change the clocks state, whether that
+bet the changing mode, the clock time, or the alarm time. The console interface uses UART to
+communicate with the users terminal.
 
-## Evaluation Criteria
+The time keeping subsystem uses a hardware timer to keep time, and uses that timer's alarm to trigger an
+interrupt when its time to alert the user. When running, there are multiple background tasks that begin.
+One polls the hardware timer to update the system clock, while another periodically updates observers
+that registered callbacks to be notified when the state changes. See `struct retro_clock_t` in
+[retro_clock.h](./code/main/retro_clock.h) to see all of the state the clock keeps.
 
-We tested the functionality by following this test protocol:
+Any peripheral that would like to react to the clock's time keeping mechanism simply needs to implemented a
+function matching the `clock_update_callback` definition in [retro_clock.h](./code/main/retro_clock.h). Once
+implemented, the output can be easily hooked up by adding the appropriate init and register calls in `app_main`.
 
-1. Power up the micro
-    * Check the display blinks '----' and the hands are at 0
-2. Follow the console prompt to set the time
-    * The display should be blinking
-    * The hours and minutes should display
-    * The display should stop blinking when set
-3. Via the console, set an alarm time 1 minute after the current alarm.
-    * The display should be blinking.
-    * Once, set, the clock should return to displaying the time.
-4. Via the console, enable the alarm.
-5. Wait one minute
-    * The display should flash "ALRM"
-6. Follow the prompt on the console to dismiss the alarm.
-    * The time should go back to displaying the time without 
-      flashing.
-
-## Solution Design
-
-The design is detailed in the specification documents in the [specs](./specs) folder. 
-A good place to start is with the [Overview](./specs/Overview.md).
-
-The user performs atction on the clock, the I/O logic call time keeping functions. The time keeping
-subsystem can then propagate changes in state to the outputs which can adjust their displays 
-accordingly. Outputs register callbacks with the time keeping system in `app_main` with the promise
-they will get called as time progresses or as the user takes action.
-
-The time keeping system uses a hardware timer to keep time with a task that poll the timer every second 
-to update the internal. The program uses a single global struct that stores all of the clocks latest state,
-including the current time, the alarm time, etc. You can see the type definitions in 
-[retro_clock.h](./code/main/retro_clock.h).  When running, a background task is responsible for polling
-the hardware timer to update the clock time.
-
-Outputs simply need to register a callback with the clock via the `retro_clock_regiser_update_callback` with
-a function pointer and they will get notified. This solution is scalable so long as the total time it takes
-to notify the callbacks is less than a second.
+> A nice improvement to this system would be to setup Queues for communicating with outputs. Currently, if one of
+> the registered outputs takes a long time to return, it will delay any callbacks that follow it. (Callbacks are
+> invoked in the order they are registered)
 
 
 ## Investigative Question
@@ -77,8 +78,8 @@ One of the potential issues that we'd face would be knowing which clock(s) from 
 
 ## Sketches and Photos
 
-<center><p>Clock with time set</p><img src="./images/time-set.jpg" width="70%" /></center>  
-<center><p>Alarm sounding</p><img src="./images/alarm-sounding.jpg" width="70%" /></center>  
+<center><p>Clock with time set</p><img src="./images/time-set.jpg" width="70%" /></center>
+<center><p>Alarm sounding</p><img src="./images/alarm-sounding.jpg" width="70%" /></center>
 
 
 ## Supporting Artifacts

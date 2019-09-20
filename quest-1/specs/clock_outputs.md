@@ -1,9 +1,17 @@
 # Retro Clock Outputs Specification
 
 This document outlines the behaviors of the alphanumeric display and
-the clock hands of retro clock through the different states. Since they
-are solely output mechanisms, they are only responsible for updating their
-outputs when update functions are notified of state or data changes
+the clock hands throughout the different states the clock can be in. Since they
+are solely output mechanisms, they are responsible for implementing a function
+that adheres to the `clock_update_callback` function prototype, and should be
+registered as callbacks during the app's initialization.
+
+Since the servos used for the hands are not continuous, they should behave
+line [impact sprinklers](https://en.wikipedia.org/wiki/Impact_sprinkler).
+The hands should start at the most counter clockwise position possible and
+rotate 100% of the servo's range in the clockwise direction, corresponding
+to 0 and 59 minutes or seconds depending on which hands. There should be a
+rapid return cycle when resetting to 0.
 
 
 ## State Behaviors
@@ -39,14 +47,13 @@ stay fixed at the angle representing 0 seconds.
 
 ### RC_MODE_IN_ALARM
 
-In this mode, the alpha display will flash the letters:
-"ALRM".
+In this mode, the alpha display will flash the letters: "ALRM"
 
 The clock hands should continue to display the time as it updates.
 
 
 ### RC_MODE_CLOCK
 
-Per the assignment specification, the display should update with
-hours and minutes, while the clock hands display minutes and seconds.
-
+Per the project specification, the display should update with
+hours and minutes, while the clock hands rotate to indicate minutes
+and seconds.
