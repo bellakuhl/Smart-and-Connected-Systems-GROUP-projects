@@ -6,9 +6,13 @@ alarm clock and how they are synchronized with the time keeping subsystem.
 The various component specifications are in separate documents that will
 be linked to as the components are introduced.
 
-## System Overview
+## Hardware Setup
 
-> TODO: Describe hardware components, GPIO setup and hardware timer mechanism
+To assemble the clock, connected the alphanumeric display via I2C. Connect the 
+minutes servo to GPIO pin 12 and the seconds hand to GPIO 27. The console I/O 
+is setup to run UART over USB.  Once the peripherals are setup and the chip is 
+flashed, the servros will rotate to the '0' position and will clockwise ~90°
+from the starting position. Place the 'hands' on the servo motors accordingly.
 
 
 ## Software Overview
@@ -16,7 +20,6 @@ be linked to as the components are introduced.
 The software for this clock is organized as the state machine diagrammed below:
 
 ![Retro Clock Diagram](../images/state_diagram.jpg)
-
 
 
 ### Time Keeping
@@ -41,7 +44,7 @@ system including:
 * Setting the clock time
 * Setting the alarm time
 * Enabling or disabling the alarm
-* Dismissing and active alarm
+* Dismissing an active alarm 
 
 The full input specification is detailed in the 
 [Retro Clock Console I/O Specification](./console_io.md)
