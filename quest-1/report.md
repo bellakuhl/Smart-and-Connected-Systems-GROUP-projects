@@ -42,7 +42,7 @@ We tested the functionality of our clock with the following test protocol:
 ## Solution Design
 
 > The design is detailed in the specification documents in the [specs](./specs) folder.
-> A good place to start is with the [Overview](./specs/Overview.md).
+> A good place to start is with the [Overview](./specs/overview.md).
 
 The clock functions as a finite state machine that transitions based on user input or 
 alarms triggered via an interrupt.
