@@ -77,8 +77,8 @@ One of the potential issues that we'd face would be knowing which clock(s) from 
 
 ## Sketches and Photos
 
-<center><p>Clock with time set</p><img src="./images/time-set.png" width="70%" /></center>  
-<center><p>Alarm sounding</p><img src="./images/alarm-sounding.png" width="70%" /></center>  
+<center><p>Clock with time set</p><img src="./images/time-set.jpg" width="70%" /></center>  
+<center><p>Alarm sounding</p><img src="./images/alarm-sounding.jpg" width="70%" /></center>  
 
 
 ## Supporting Artifacts
