@@ -29,7 +29,7 @@ One of the potential issues that we'd face would be knowing which clock(s) from 
 
 ## Supporting Artifacts
 - [Link to repo]()
-- [https://drive.google.com/file/d/19ph8pJgsHekSAIAexwMMzVPk7IlnPV5K/view?usp=sharing]()
+- Video: [https://drive.google.com/file/d/19ph8pJgsHekSAIAexwMMzVPk7IlnPV5K/view?usp=sharing]()
 
 
 ## References
