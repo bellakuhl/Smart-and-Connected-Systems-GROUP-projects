@@ -172,10 +172,10 @@ void retro_clock_io_main(retro_clock_t *clock)
     {
         if (clock->clock_mode == RC_MODE_CLOCK)
         {
-            char *prompt = "Your clock is now running. Available commands: \n"
-                            "Set clock time - Press 'c'\n"
-                            "Set alarm time - Press 'a'\n"
-                            "Enable alarm   - Press 'e'\n"
+            char *prompt = "Your clock is now running. Available commands: \r\n"
+                            "Set clock time - Press 'c'\r\n"
+                            "Set alarm time - Press 'a'\r\n"
+                            "Enable alarm   - Press 'e'\r\n"
                             "Disable alarm  - Press 'd'";
                             //"Help - Press 'h'";
 
@@ -183,9 +183,9 @@ void retro_clock_io_main(retro_clock_t *clock)
             // take in user input and call function for input
             char input = io_uart_getc();
             while (strchr("cxaed", input) == NULL){
-                io_uart_writes("Invalid input. Please try again: ");
+                io_uart_writes("Invalid input. Please try again.");
                 input = io_uart_getc();
-                io_uart_writeline("\r\n");
+                io_uart_writes("\r\n");
             }
             if (input == 'c'){
                 retro_clock_change_mode(clock, RC_MODE_SET_TIME);
@@ -194,7 +194,11 @@ void retro_clock_io_main(retro_clock_t *clock)
             }else if (input == 'e'){
                 retro_clock_enable_alarm(clock);
             }else if (input == 'd'){
+             if (clock->clock_mode == RC_MODE_IN_ALARM) {
+                retro_clock_io_dismiss_alarm(clock);
+              } else {
                 retro_clock_disable_alarm(clock);
+              }
             }
         }
         else if (clock->clock_mode == RC_MODE_SET_TIME) {
@@ -206,6 +210,7 @@ void retro_clock_io_main(retro_clock_t *clock)
             retro_clock_change_mode(clock, RC_MODE_CLOCK);
         }
         else if (clock->clock_mode == RC_MODE_IN_ALARM) {
+            io_uart_writeline("Alarm is sounding!");
             retro_clock_io_dismiss_alarm(clock);
         }
     }
