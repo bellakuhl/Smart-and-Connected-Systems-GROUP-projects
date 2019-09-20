@@ -6,19 +6,20 @@ Authors: Joe Rossi, Isabella Kuhl, Laura Reeve
 
 ## Summary
 
-For this quest we designed the clock by breaking it down into three subsystems:
+For this quest we broke our clock design into three subsystems:
 
 * Inputs - Laura Reeve
 * Time Management - Joseph Rossi
 * Outputs - Isabella Kuhl
 
-This breakdown allowed us to work independently after we agreed on a design and a way
-to interface between our subsystems. Details about the various subsystems can be found in the
-[clock specification documents](./specs/overview.md).
+This breakdown allowed us to work independently after we agreed on the 
+interface between our subsystems. Details about the various subsystems 
+can be found in the [clock specification documents](./specs/overview.md).
+
 
 ## Evaluation Criteria
 
-We tested the functionality by following this test protocol:
+We tested the functionality of our clock with the following test protocol:
 
 1. Power up the clock
     * Check the display blinks '----'
@@ -27,20 +28,24 @@ We tested the functionality by following this test protocol:
     * The hours and minutes should display
     * The display should stop blinking when set
     * The hands should start rotating clockwise.
-3. Via the console, set an alarm time 1 minute after the current time.
-    * The display should be blinking.
-    * Once, set, the clock should return to displaying the time.
-4. Via the console, enable the alarm.
-5. Wait one minute
-    * The display should flash "ALRM"
+3. In the console, set an alarm time 1 minute after the current time.
+    * The display should be blinking while setting the alarm time.
+    * Once set, the clock should return to displaying the current time.
+4. Enable the alarm via the console
+5. Wait one minute -- the display should start flashing "ALRM"
 6. Press 'd' to dismiss the alarm.
     * The user should be prompted to type the word "dismiss" to turn
       off the alarm.
     * The clock should go back to displaying the time without flashing.
 
+
 ## Solution Design
+
 > The design is detailed in the specification documents in the [specs](./specs) folder.
 > A good place to start is with the [Overview](./specs/Overview.md).
+
+The clock functions as a finite state machine that transitions based on user input or 
+alarms triggered via an interrupt.
 
 The input system uses the UART controller to allow the user to make these calls via the console:
 
@@ -50,13 +55,14 @@ The input system uses the UART controller to allow the user to make these calls 
 * Disable Alarm (also used to dismiss an active alarm)
 
  It then translates these actions into API calls to the timekeeping system, which makes state and data changes
- that propagate to the outputs. The timekeeping subsystem utilizes a hardware timer to keep track of the current time and this
- is also connected to a timer alarm that triggers an interrupt when it needs to sound the alarm. Outputs register callbacks
- with the timekeeping system and are notified when the time or mode changes.
+ that propagate to the outputs. The timekeeping subsystem utilizes a hardware timer to keep track of time
+ and uses the timer's alarm to trigger an interrupt when its time to sound the alarm. Output modules register 
+ callbacks with the timekeeping system and are notified when the time or mode changes. (i.e. the servos and
+ the alphanumeric display)
 
-> A nice improvement to this system would be to setup queues for communicating with outputs. Currently, if one of
-> the registered outputs takes a long time to return, it will delay any callbacks that follow it. (Callbacks are
-> invoked in the order they are registered)
+> A nice improvement to this system would be to setup queues for notifying outputs when things change. 
+> Currently, if one of the registered outputs takes a long time to return, it will delay any callbacks 
+> that follow it. (Callbacks are invoked in the order they are registered.)
 
 
 ## Investigative Question
@@ -79,6 +85,8 @@ One of the potential issues that we'd face would be knowing which clock(s) from 
 
 
 ## References
+
+* [ESP-IDF APIs](https://docs.espressif.com/projects/esp-idf/en/stable/api-reference/index.html)
 
 -----
 
