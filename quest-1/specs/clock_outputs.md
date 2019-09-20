@@ -7,7 +7,7 @@ that adheres to the `clock_update_callback` function prototype, and should be
 registered as callbacks during the app's initialization.
 
 Since the servos used for the hands are not continuous, they should behave
-line [impact sprinklers](https://en.wikipedia.org/wiki/Impact_sprinkler).
+like [impact sprinklers](https://en.wikipedia.org/wiki/Impact_sprinkler).
 The hands should start at the most counter clockwise position possible and
 rotate 100% of the servo's range in the clockwise direction, corresponding
 to 0 and 59 minutes or seconds depending on which hands. There should be a

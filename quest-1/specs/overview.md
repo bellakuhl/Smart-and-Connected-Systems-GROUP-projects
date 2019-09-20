@@ -1,18 +1,16 @@
 # Retro Alarm Clock
 
-This document outlines the different input and out components of the retro
-alarm clock and how they are synchronized with the time keeping subsystem.
+This document outlines the different input and output components of the retro
+alarm clock and how they are synchronized with the timekeeping system.
 
-The various component specifications are in separate documents that will
-be linked to as the components are introduced.
 
 ## Hardware Setup
 
-To assemble the clock, connected the alphanumeric display via I2C. Connect the
-minutes servo to GPIO 12 and the seconds hand to GPIO 27. The console I/O
+To assemble the clock, connect the alphanumeric display via I2C. Connect the
+minutes servo to GPIO 12 and the seconds servo to GPIO 27. The console I/O
 is setup to run UART over USB.  Once the peripherals are setup and the chip is
-flashed, the servros will rotate to the '0' position and will rotate clockwise
-~90° from the starting position. Place the hands on the servo motors.
+flashed, the servos will rotate to the '0' position and will rotate clockwise
+~90° from the starting position. Place the hands on the servos.
 
 
 ## Software Overview
@@ -31,20 +29,19 @@ The data managed by the system includes:
 * The current state
 * Whether the alarm is enabled or disabled
 
-When in clock mode, the time management subsystem using a hardware timer trigger updates.
+When in clock mode, the timekeeping using a hardware timer trigger updates.
 The full specification is in [Retro Clock Time Keeping Specification](./time_keeping.md)
 
 
 ### Input
 
-The only external input available to a user is through a UART tty console connected
-via USB. The console is responsible for allowing the user to take action on the
-system including:
+The only external input available to a user is through a UART over USB console.
+The console allows the user to take the following actions on the clock:
 
-* Setting the clock time
-* Setting the alarm time
-* Enabling or disabling the alarm
-* Dismissing an active alarm
+* Set the clock time
+* Set the alarm time
+* Enable or disable the alarm
+* Dismiss an active alarm
 
 See the [Retro Clock Console I/O Specification](./console_io.md) for details.
 

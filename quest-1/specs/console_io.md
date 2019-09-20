@@ -1,6 +1,6 @@
 # Retro Clock Console I/O Specification
 
-Console I/O will be the only way for the user to input inforamtion
+Console I/O will be the only way for the user to input information
 into the clock. It must enable the user to:
 
 1. Set Time:  Set the clock time
@@ -24,7 +24,7 @@ state machine:
 
 ### RC_MODE_NOT_SET
 
-**Availble Commands**
+**Available Commands**
 
 * Set Time
 
@@ -73,7 +73,7 @@ If there's time, it would be nice to build way to cancel setting the time.
 
 This mode behaves exactly as `RC_MODE_SET_TIME`, except the console should
 be updating the alarm time instead of the console time. Additionally,
-before switching into `RC_MODE_CLOCK`, the console should notifiy the system
+before switching into `RC_MODE_CLOCK`, the console should notify the system
 that the alarm time has changes so it can appropriately setup the new alarm
 if it is enabled.
 
@@ -117,5 +117,5 @@ should enabled or disabled and a confirmation printed to the user.
 In this mode, the console should prompt: `The alarm is sounding! Type 'dismiss' to stop: `
 
 If the user does not properly type dismiss, the console should display an error message
-and reprompt the user to dismiss. Once properly dismissed, the console should call
+and re-prompt the user to dismiss. Once properly dismissed, the console should call
 the function `retro_clock_dismiss_alarm(retro_clock_t *)`.
