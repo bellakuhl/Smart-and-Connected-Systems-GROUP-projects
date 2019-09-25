@@ -16,7 +16,7 @@ bool hour_is_valid(char hour[]){
 		return false;
 	} else{
 		for (int i = 0; i<1024; i++){
-			if (!isdigit(hour[0])){
+			if (!isdigit((int)hour[0])){
 				return false;
 			}
 		}
@@ -31,7 +31,7 @@ bool minute_is_valid(char minute[]){
 		return false;
 	} else{
 		for (int i = 0; i<1024; i++){
-			if (!isdigit(minute[0])){
+			if (!isdigit((int)minute[0])){
 				return false;
 			}
 		}
