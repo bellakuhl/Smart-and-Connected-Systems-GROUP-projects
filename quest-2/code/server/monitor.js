@@ -31,10 +31,13 @@ interface Reading {
  * @returns Reading
  */
 function parseData(data) {
-    var sensorsValues = [];
     var json = JSON.parse(data); 
-
-    // TODO: Parse data string into sensor values
+    var sensorValues = [
+        {"name": "thermistor", "units": "degC", "value": json.thermistor_degc},
+        {"name": "battery", "units": "volts", "value": json.battery_volts},
+        {"name": "ultrasonic", "units": "m", "value": json.ultrasonic_m},
+        {"name": "rangefinder", "units": "m", "value": json.rangefinder_m}
+    ];
 
     return {
         timestamp: (new Date()).toISOString(),
@@ -64,7 +67,7 @@ module.exports = {
      * Register event handlers to be notified of 'data'
      *
      */
-    on: DataEmitter.on.bind(module.exports)
+    on: DataEmitter.on.bind(DataEmitter)
 }
 
 
