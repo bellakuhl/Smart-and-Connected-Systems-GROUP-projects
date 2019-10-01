@@ -1,0 +1,14 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <script src="/node_modules/canvasjs/dist/canvasjs.3.js"></script>
+        <script src="/node_modules/socket.io-client/dist/socket.io.js"></script>
+        <script>
+            var socket = io('http://localhost:8080');
+            socket.on('data', function (data) {
+                console.log(data);
+            });
+        </script>
+    </body>
+</html>
