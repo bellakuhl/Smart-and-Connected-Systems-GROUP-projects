@@ -20,7 +20,7 @@ const server = http.createServer(function (req, resp) {
     var path = url.parse(req.url).path;
     if (!path || path == "/") {
         path = "/index.html";
-
+    }
     
     const file = path.substr(1);
     fs.readFile(file, function (err, data) {
@@ -50,7 +50,7 @@ function start(devicePath) {
         // TODO: Write to a file.
     });
 
-    monitor.start("/dev/ttyUSB0", 115200);
+    monitor.start(devicePath, 115200);
     server.listen(8080);
 }
 
