@@ -47,6 +47,7 @@ function start(devicePath) {
 
     monitor.on("data", function (reading) {
         websocket.emit("data", reading);
+        // TODO: Write to a file.
     });
 
     monitor.start("/dev/ttyUSB0", 115200);
