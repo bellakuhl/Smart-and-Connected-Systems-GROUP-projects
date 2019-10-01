@@ -39,15 +39,27 @@ const server = http.createServer(function (req, resp) {
 
 const websocket = io(server);
 
-websocket.on("connection", function (socket) {
-    console.log("Websocket client connected.");
-    websocket.emit("data", "Connected");
-});
+function start(devicePath) {
+    websocket.on("connection", function (socket) {
+        console.log("Websocket client connected.");
+        websocket.emit("data", "Connected");
+    });
 
-monitor.on("data", function (reading) {
-    websocket.emit("data", reading);
-});
+    monitor.on("data", function (reading) {
+        websocket.emit("data", reading);
+    });
 
-monitor.start("/dev/ttyUSB0", 115200);
-server.listen(8080);
+    monitor.start("/dev/ttyUSB0", 115200);
+    server.listen(8080);
+}
+
+if (require.main == module) {
+    var args = process.argv.slice();
+    if (args.length == 2) {
+        throw new Error("Must provide serial port to connect to: /dev/ttyUSB0, COM4, etc");
+    }
+
+    const dev = args[2];
+    start(dev);
+}
 
