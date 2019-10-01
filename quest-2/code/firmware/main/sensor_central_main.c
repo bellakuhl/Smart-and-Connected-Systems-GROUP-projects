@@ -18,8 +18,8 @@ typedef struct {
 void serialize_reading_json(sensor_reading_t *reading, char **dst)
 {
     // { 'battery': %
-    char *fmt = "{\"battery_volts\":%.3f,\"ultrasonic_dist\":%.3f,"
-                 "\"rangefinder_dist\": %.3f,\"thermistor_degc\":%.3f}";
+    char *fmt = "{\"battery_volts\":%.3f,\"ultrasonic_m\":%.3f,"
+                "\"rangefinder_m\": %.3f,\"thermistor_degc\":%.3f}";
 
     size_t strsize = sizeof(char) * strlen(fmt) + 5 * sizeof(char) + 50; // 50 padding
     *dst = (char *)malloc(strsize);
