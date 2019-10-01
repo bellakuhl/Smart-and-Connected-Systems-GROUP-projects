@@ -1,7 +1,7 @@
 # Quest Name
-Authors: FirstName1 LastName1, FirstName2 LastName2, FirstName3 LastName 3
+Authors: Isabella Kuhl, Laura Reeve, Joseph Rossi
 
-YYYY-MM-DD
+2019-10-01
 
 ## Summary
 
@@ -17,7 +17,6 @@ YYYY-MM-DD
 
 ## Sketches and Photos
 <center><img src="./images/example.png" width="70%" /></center>  
-<center> </center>
 
 
 ## Supporting Artifacts
@@ -26,6 +25,11 @@ YYYY-MM-DD
 
 
 ## References
+
+* [MF52 Thermistor Datasheet](https://www.eaa.net.au/PDF/Hitech/MF52type.pdf)
+* [MaxSonar Ez Datasheet](https://www.maxbotix.com/documents/LV-MaxSonar-EZ_Datasheet.pdf)
+* [Sharp Rangefinder Datasheet](https://www.sparkfun.com/datasheets/Sensors/Infrared/gp2y0a02yk_e.pdf)
+
 
 -----
 
