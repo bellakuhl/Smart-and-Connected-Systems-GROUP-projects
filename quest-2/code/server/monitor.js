@@ -20,7 +20,10 @@ interface Reading {
  */
 
 /**
- * Converts serial data received into a javascript object
+ * Transforms output of serial reading into the data format needed
+ * by the client. This function may raise an exception if the data
+ * provided is not a JSON string. The caller is responsible for handling
+ * any errors.
  *
  * @params The serial data to transform. This should be one line of sensor
  * readings
@@ -29,6 +32,7 @@ interface Reading {
  */
 function parseData(data) {
     var sensorsValues = [];
+    var json = JSON.parse(data); 
 
     // TODO: Parse data string into sensor values
 
@@ -39,21 +43,33 @@ function parseData(data) {
 }
 
 module.exports = {
+    /**
+     * Start monitoring the serial device.
+     *
+     * @param dev  The serial device to monitor
+     * @param baudRate The baudRate of the serial device
+     */
     start: function (device, baudRate) {
-        console.log("Start monitor with: ", dev, baudRate);
+        console.info("Start monitor with: ", dev, baudRate);
         const esp32 = new SerialPort(device, {baudRate: baudRate});
-
-
         esp32.on("data", function (data) {
-            DataEmitter.emit("data", parseReading(data));
+            try {
+                DataEmitter.emit("data", parseData(data));
+            } catch (err) {
+                console.error("Error parsing data: ", err);
+            }
         });
     },
+    /**
+     * Register event handlers to be notified of 'data'
+     *
+     */
     on: DataEmitter.on.bind(module.exports)
 }
 
 
-if (require.main == module) 
-{
+// If invoking this script from the CLI directly
+if (require.main == module) {
     var dev = "/dev/ttyUSB0";
     var baudRate = 115200;
     var args = process.argv.slice();
