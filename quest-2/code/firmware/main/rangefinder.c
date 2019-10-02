@@ -55,6 +55,6 @@ float rangefinder_read_meters()
     float puntualDistance = 60.374 * pow(voltage/1000.0, -1.16);  //  Formula from Sharp IR arduino library
     puntualDistance /= 100;   // convert to meters
 
-    printf("Distance: %fm\n", puntualDistance);
+    printf("Distance: %f m\n", puntualDistance);
     return puntualDistance;
 }
