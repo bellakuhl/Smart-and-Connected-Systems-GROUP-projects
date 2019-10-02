@@ -78,7 +78,6 @@ if (require.main == module) {
     var args = process.argv.slice();
 
     if (args.length > 2) {
-        console.log("Dev set");
         dev = args[2];
     }
 
