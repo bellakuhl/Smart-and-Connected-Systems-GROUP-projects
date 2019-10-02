@@ -150,7 +150,6 @@
                     }
                 });
 
-                console.log(dataPoint);
                 renderData(dataPoint);
             });
         }).catch(function (err) {
