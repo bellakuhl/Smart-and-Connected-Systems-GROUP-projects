@@ -52,5 +52,6 @@ float battery_monitor_read_volts()
     adc_reading /= NO_OF_SAMPLES;                                         // average samples
 
     float voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);   // convert adc_reading to  mV
+    printf("Voltage: %f mV\n", voltage);
     return voltage;
 }
