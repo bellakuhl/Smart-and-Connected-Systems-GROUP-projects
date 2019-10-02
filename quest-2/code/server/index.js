@@ -1,8 +1,8 @@
 const http = require("http");
 const url = require("url");
-const fs = require("fs");
 const io = require("socket.io");
 const monitor = require("./monitor");
+const fs = require("fs").promises;
 
 const mimeMap = {
     ".js": "application/javascript",
@@ -38,19 +38,42 @@ const server = http.createServer(function (req, resp) {
 });
 
 const websocket = io(server);
+let COLUMNS = ["timestamp", "battery", "rangefinder", "ultrasonic", "thermistor"];
+function appendRow(fd, data) {
+    let row = [data.timestamp];
+
+    data.sensors.forEach(function (sensor) {
+        let idx = COLUMNS.indexOf(sensor.name);
+        if (idx < 0) {
+            console.error("Unknown column: ", sensor.name);
+            return;
+        }
+
+        row[idx] = sensor.value
+    });
+
+    fs.appendFile(fd, row.join(",") + "\n");
+}
 
 function start(devicePath) {
-    websocket.on("connection", function (socket) {
-        console.log("Websocket client connected.");
-    });
+    const logFilename = "sensors.csv";
 
-    monitor.on("data", function (reading) {
-        websocket.emit("data", reading);
-        // TODO: Write to a file.
-    });
+    return fs.stat(logFilename).catch(function () {
+        // Write the csv header if the file doesn't exist 
+        return fs.writeFile(logFilename, COLUMNS.join(",") + "\n");
+    }).then(function () {
+        websocket.on("connection", function (socket) {
+            console.log("Websocket client connected.");
+        });
 
-    monitor.start(devicePath, 115200);
-    server.listen(8080);
+        monitor.on("data", function (reading) {
+            websocket.emit("data", reading);
+            appendRow(logFilename, reading);
+        });
+
+        monitor.start(devicePath, 115200);
+        server.listen(8080);
+    });
 }
 
 if (require.main == module) {
@@ -60,6 +83,8 @@ if (require.main == module) {
     }
 
     const dev = args[2];
-    start(dev);
+    start(dev).catch(function (err) {
+        console.error("Error starting webserver: ", err);
+    });
 }
 
