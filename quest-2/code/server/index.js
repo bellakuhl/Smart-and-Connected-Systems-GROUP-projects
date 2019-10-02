@@ -17,22 +17,20 @@ const contentType = function (path) {
 };
 
 const server = http.createServer(function (req, resp) {
-    var path = url.parse(req.url).path;
+    var path = url.parse(req.url).pathname;
     if (!path || path == "/") {
         path = "/index.html";
     }
     
     const file = path.substr(1);
-    fs.readFile(file, function (err, data) {
-        if (err) {
-            resp.writeHead(404, {"Content-Type": "text/plain"});
-            resp.write("Not Found");
-        }
-        else {
-            const type = contentType(file);
-            resp.writeHead(200, {"Content-Type": type});
-            resp.write(data);
-        }
+    fs.readFile(file).then(function (data) {
+        const type = contentType(file);
+        resp.writeHead(200, {"Content-Type": type});
+        resp.write(data.toString());
+        resp.end(); 
+    }).catch(function (err) {
+        resp.writeHead(404, {"Content-Type": "text/plain"});
+        resp.write("Not Found");
         resp.end(); 
     });
 });
@@ -71,8 +69,12 @@ function start(devicePath) {
             appendRow(logFilename, reading);
         });
 
-        monitor.start(devicePath, 115200);
+        return monitor.start(devicePath, 115200);
+    }).catch(function () {
+        console.error("Error starting device monitor: " + devicePath);
+    }).finally(function () {
         server.listen(8080);
+        console.log("Started listening on port 8080")
     });
 }
 
@@ -82,8 +84,7 @@ if (require.main == module) {
         throw new Error("Must provide serial port to connect to: /dev/ttyUSB0, COM4, etc");
     }
 
-    const dev = args[2];
-    start(dev).catch(function (err) {
+    start(args[2]).catch(function (err) {
         console.error("Error starting webserver: ", err);
     });
 }

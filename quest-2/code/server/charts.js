@@ -81,13 +81,10 @@
         ]
     });
 
-    var socket = io('http://localhost:8080');
-    socket.on('data', function (data) {
-        if (!data.hasOwnProperty("timestamp") || !data.hasOwnProperty("sensors")) {
-            console.warn("Got unknown data format: ", data);
-            return;
-        }
-
+    /**
+     * @param data: SensorReading (see monitor.js)
+    */
+    function renderData(data) {
         var date = Date.parse(data.timestamp);
         data.sensors.forEach(function (sensor) {
             dataPoints[sensor.name].push({
@@ -104,5 +101,82 @@
         distanceChart.render();
         temperatureChart.render();
         batteryChart.render();
-    });
+    }
+
+    function fetchCSV(filename) {
+        return new Promise(function (resolve, reject) {
+            var req = new XMLHttpRequest();
+
+            req.open("GET", "/" + filename);
+            req.onreadystatechange = function () {
+                if (req.readyState < 4) {
+                    return;
+                }
+
+                if (req.status != 200 ) {
+                    reject("Error getting data: " + req.responseText);
+                }
+                else {
+                    resolve(req.responseText);
+                }
+                
+            };
+
+            req.send();
+        });
+    }
+
+    function renderCSV(filename) {
+        return fetchCSV(filename).then(function (data) {
+            var rows = data.split("\n");
+            var headers = rows[0].split(",").map(function (d) { return d.trim();});
+
+            rows.slice(1).forEach(function (row) {
+                if (!row.trim()) return;
+                var columns = row.split(",").map(function(d) {return d.trim();});
+                var time, y, name;
+                var dataPoint = {
+                    timestamp: null,
+                    sensors: []
+                };
+
+                columns.forEach(function (col, i) {
+                    name = headers[i];
+                    if (i == 0) { 
+                        dataPoint.timestamp = new Date(Date.parse(col));
+                    }
+                    else {
+                        dataPoint.sensors.push({name: name, value: parseFloat(col), units: null});
+                    }
+                });
+
+                console.log(dataPoint);
+                renderData(dataPoint);
+            });
+        }).catch(function (err) {
+            console.error("Error fetching csv: " + err);
+            return Promise.reject(err);
+        })
+    }
+
+    function main() {
+        var csvToRender = window.location.search.match(/csv=(.*)/);
+        if (csvToRender) {
+            renderCSV(csvToRender[1]);
+        }
+        else {
+            var socket = io('http://localhost:8080');
+            socket.on('data', function (data) {
+                if (!data.hasOwnProperty("timestamp") || !data.hasOwnProperty("sensors")) {
+                    console.warn("Got unknown data format: ", data);
+                    return;
+                }
+
+                renderData(data);
+            });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", main);
 }());
+

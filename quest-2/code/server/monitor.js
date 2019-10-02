@@ -13,7 +13,7 @@ interface SensorValue {
     value: float
 }
 
-interface Reading {
+interface SensorReading {
     timestame: string // UTC Date String
     sensorValues: SensorValue[]
 }
@@ -28,7 +28,7 @@ interface Reading {
  * @params The serial data to transform. This should be one line of sensor
  * readings
  *
- * @returns Reading
+ * @returns SensorReading
  */
 function parseData(data) {
     var json = JSON.parse(data); 
