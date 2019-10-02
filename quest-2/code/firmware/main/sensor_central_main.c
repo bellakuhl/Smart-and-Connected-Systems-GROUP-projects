@@ -8,7 +8,7 @@
 
 #include "sensor_central.h"
 
-#define MOCK
+//#define MOCK
 
 typedef struct {
     float battery_volts;

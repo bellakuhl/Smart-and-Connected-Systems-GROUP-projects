@@ -53,7 +53,7 @@ module.exports = {
      * @param baudRate The baudRate of the serial device
      */
     start: function (device, baudRate) {
-        console.info("Start monitor with: ", dev, baudRate);
+        console.info("Start monitor with: ", device, baudRate);
         const esp32 = new SerialPort(device, {baudRate: baudRate});
         esp32.on("data", function (data) {
             try {

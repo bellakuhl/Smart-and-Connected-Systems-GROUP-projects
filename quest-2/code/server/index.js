@@ -42,7 +42,6 @@ const websocket = io(server);
 function start(devicePath) {
     websocket.on("connection", function (socket) {
         console.log("Websocket client connected.");
-        websocket.emit("data", "Connected");
     });
 
     monitor.on("data", function (reading) {
