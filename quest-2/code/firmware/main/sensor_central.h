@@ -8,7 +8,7 @@
 #define THERM_ADC_CHANNEL           0
 #define ULTRASONIC_ADC_CHANNEL      0
 #define RANGEFINDER_ADC_CHANNEL     0
-#define BATTERY_ADC_CHANNEL         0
+#define BATTERY_ADC_CHANNEL         6
 
 int thermistor_mf2_init();
 float thermistor_mf2_read_celcius();
@@ -21,4 +21,3 @@ float rangefinder_read_meters();
 
 int battery_monitor_int();
 float battery_monitor_read_volts();
-
