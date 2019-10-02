@@ -7,7 +7,7 @@
 // TODO: Update these when design is specified.
 #define THERM_ADC_CHANNEL           0
 #define ULTRASONIC_ADC_CHANNEL      0
-#define RANGEFINDER_ADC_CHANNEL     0
+#define RANGEFINDER_ADC_CHANNEL     5
 #define BATTERY_ADC_CHANNEL         6
 
 int thermistor_mf2_init();
