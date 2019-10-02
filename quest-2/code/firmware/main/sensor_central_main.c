@@ -4,7 +4,6 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/adc.h"
 
 #include "sensor_central.h"
 
@@ -72,12 +71,12 @@ void app_main(void)
 {
 #ifdef MOCK
     srand(time(NULL));
-#endif
-
+#else
     thermistor_mf2_init();
     ultrasonic_init();
     rangefinder_init();
     battery_monitor_int();
+#endif
 
     while (1)
     {
