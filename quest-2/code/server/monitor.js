@@ -56,11 +56,14 @@ module.exports = {
         console.info("Start monitor with: ", device, baudRate);
         const esp32 = new SerialPort(device, {baudRate: baudRate});
         esp32.on("data", function (data) {
-            try {
-                DataEmitter.emit("data", parseData(data));
-            } catch (err) {
-                console.error("Error parsing data: ", err);
-            }
+            data.toString().split("\r\n").forEach(function (line) {
+                if (!line.trim()) return;
+                try {
+                    DataEmitter.emit("data", parseData(line));
+                } catch (err) {
+                    console.error("Error parsing data: ", err);
+                }
+            });
         });
     },
     /**
