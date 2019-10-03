@@ -53,8 +53,8 @@ function appendRow(fd, data) {
     fs.appendFile(fd, row.join(",") + "\n");
 }
 
-function start(devicePath) {
-    const logFilename = "sensors.csv";
+function start(devicePath, logFilename) {
+    //const logFilename = "sensors.csv";
 
     return fs.stat(logFilename).catch(function () {
         // Write the csv header if the file doesn't exist 
@@ -84,7 +84,10 @@ if (require.main == module) {
         throw new Error("Must provide serial port to connect to: /dev/ttyUSB0, COM4, etc");
     }
 
-    start(args[2]).catch(function (err) {
+    var serialDev = args[2];
+    var logName = args.length > 3 ? args[3] : "sensors.csv";
+
+    start(serialDev, logName).catch(function (err) {
         console.error("Error starting webserver: ", err);
     });
 }
