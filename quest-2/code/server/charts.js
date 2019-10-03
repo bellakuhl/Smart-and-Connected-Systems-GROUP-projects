@@ -84,6 +84,7 @@
     /**
      * @param data: SensorReading (see monitor.js)
     */
+    var RENDER_WINDOW_SECONDS = 60; 
     function renderData(data) {
         var date = Date.parse(data.timestamp);
         data.sensors.forEach(function (sensor) {
@@ -92,9 +93,11 @@
                 y: sensor.value
             });
 
-            // Only show the last 30 seconds of data
-            if (dataPoints[sensor.name].length == 60 /2) {
-                dataPoints[sensor.name].shift();
+            // Only show the last 60 seconds of data
+            if (RENDER_WINDOW_SECONDS != null) {
+                if (dataPoints[sensor.name].length == Math.floor(RENDER_WINDOW_SECONDS/2) + 1) {
+                    dataPoints[sensor.name].shift();
+                }
             }
         })
 
@@ -159,11 +162,24 @@
     }
 
     function main() {
+        // Make the charts show up
+        distanceChart.render();
+        temperatureChart.render();
+        batteryChart.render();
+
         var csvToRender = window.location.search.match(/csv=(.*)/);
         if (csvToRender) {
             renderCSV(csvToRender[1]);
         }
         else {
+            var renderWindow = window.location.search.match(/window=(.*)/);
+            if (renderWindow) {
+                var winSizeSec = parseFloat(renderWindow[1]);
+                RENDER_WINDOW_SECONDS = winSizeSec == -1 ? null : 
+                                        winSizeSec >   5 ? winSizeSec : 
+                                        RENDER_WINDOW_SECONDS;
+            }
+
             var socket = io('http://localhost:8080');
             socket.on('data', function (data) {
                 if (!data.hasOwnProperty("timestamp") || !data.hasOwnProperty("sensors")) {
