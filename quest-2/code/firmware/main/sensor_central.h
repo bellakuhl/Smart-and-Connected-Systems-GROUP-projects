@@ -4,11 +4,6 @@
 #define ADC1_DEFAULT_VREF    1100
 #define ADC2_DEFAULT_VREF    1100
 
-// TODO: Update these when design is specified.
-#define THERM_ADC_CHANNEL           0
-#define ULTRASONIC_ADC_CHANNEL      0
-#define RANGEFINDER_ADC_CHANNEL     5  // GPIO33 ----> pin 33
-#define BATTERY_ADC_CHANNEL         6  // GPIO34 ----> pin A2
 
 int thermistor_mf2_init();
 float thermistor_mf2_read_celcius();
