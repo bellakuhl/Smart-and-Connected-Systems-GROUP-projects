@@ -13,7 +13,7 @@
 static esp_adc_cal_characteristics_t *adc_chars;
 static const adc_channel_t channel = ADC_CHANNEL_4;     //GPIO32 if ADC1, GPIO13 if ADC2
 static const adc_atten_t atten = ADC_ATTEN_DB_11;
-static const adc_unit_t unit = ADC_UNIT_1;
+static const adc_unit_t unit = ADC_UNIT_1; 			//ADC1
 
 int ultrasonic_init()
 {
@@ -47,8 +47,7 @@ float ultrasonic_read_meters()
     adc_reading /= NO_OF_SAMPLES;
     //Convert adc_reading to voltage in mV
     uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
-    uint32_t dist = (voltage / 9.88);
-    //printf("Raw: %d\tVoltage: %dmV\tDistance: %d\n", adc_reading, voltage, dist);
+    uint32_t dist = (voltage / 9.88);		// Using 5V
     return dist;
 }
 
