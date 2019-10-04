@@ -22,7 +22,9 @@ static const adc_unit_t unit = ADC_UNIT_1;
 
 int battery_monitor_int()
 {
-
+    adc1_config_width(ADC_WIDTH_BIT_12);
+    adc1_config_channel_atten(channel, atten);
+    adc2_config_channel_atten((adc2_channel_t)channel, atten);
     adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));         // characterize ADC
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, ADC_WIDTH_BIT_12, DEFAULT_VREF, adc_chars);
 
