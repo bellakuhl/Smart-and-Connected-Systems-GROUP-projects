@@ -15,18 +15,12 @@
 #define NO_OF_SAMPLES   10          // Number of samples taken
 
 static esp_adc_cal_characteristics_t *adc_chars;
-static const adc_channel_t channel = ADC_CHANNEL_5;
+static const adc_channel_t channel = ADC_CHANNEL_5;  // GPIO33 ----> pin 33
 static const adc_atten_t atten = ADC_ATTEN_DB_11;
 static const adc_unit_t unit = ADC_UNIT_1;
 
 int rangefinder_init()
 {
-    if (unit == ADC_UNIT_1) {
-        adc1_config_width(ADC_WIDTH_BIT_12);
-        adc1_config_channel_atten(channel, atten);
-    } else {
-        adc2_config_channel_atten((adc2_channel_t)channel, atten);
-    }
 
     //Characterize ADC
     adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
