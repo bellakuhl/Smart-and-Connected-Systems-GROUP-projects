@@ -1,11 +1,13 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/adc.h"
 
 #include "sensor_central.h"
+
+//#define MOCK
 
 typedef struct {
     float battery_volts;
@@ -37,24 +39,50 @@ void serialize_reading_json(sensor_reading_t *reading, char **dst)
     );
 }
 
+#ifndef MOCK
+sensor_reading_t read_sensors()
+{
+    sensor_reading_t reading = {
+        .battery_volts = battery_monitor_read_volts(),
+        .ultrasonic_m = ultrasonic_read_meters(),
+        .rangefinder_m = rangefinder_read_meters(),
+        .thermistor_degc = thermistor_mf2_read_celcius()
+    };
+    return reading;
+}
+#else
+#include <time.h>
+
+sensor_reading_t read_sensors()
+{
+    sensor_reading_t reading = {
+        .battery_volts = 2.5 + ((float)rand()/RAND_MAX * 5.5),
+        .ultrasonic_m = 0.5 + ((float)rand()/RAND_MAX * 15),
+        .rangefinder_m = 0.5 + ((float)rand()/RAND_MAX * 15),
+        .thermistor_degc = 15.0f + ((float)rand()/RAND_MAX * 7)
+    };
+
+    return reading;
+}
+#endif
+
 
 void app_main(void)
 {
+#ifdef MOCK
+    srand(time(NULL));
+#else
     thermistor_mf2_init();
     ultrasonic_init();
     rangefinder_init();
     battery_monitor_int();
+#endif
 
     while (1)
     {
-        sensor_reading_t reading = {
-            .battery_volts = battery_monitor_read_volts(),
-            .ultrasonic_m = ultrasonic_read_meters(),
-            .rangefinder_m = rangefinder_read_meters(),
-            .thermistor_degc = thermistor_mf2_read_celcius()
-        };
 
         char *json = NULL;
+        sensor_reading_t reading = read_sensors();
         serialize_reading_json(&reading, &json);
 
         if (json != NULL) {

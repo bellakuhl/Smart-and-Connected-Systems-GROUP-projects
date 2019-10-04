@@ -13,7 +13,7 @@ interface SensorValue {
     value: float
 }
 
-interface Reading {
+interface SensorReading {
     timestame: string // UTC Date String
     sensorValues: SensorValue[]
 }
@@ -28,13 +28,16 @@ interface Reading {
  * @params The serial data to transform. This should be one line of sensor
  * readings
  *
- * @returns Reading
+ * @returns SensorReading
  */
 function parseData(data) {
-    var sensorsValues = [];
     var json = JSON.parse(data); 
-
-    // TODO: Parse data string into sensor values
+    var sensorValues = [
+        {"name": "thermistor", "units": "degC", "value": json.thermistor_degc},
+        {"name": "battery", "units": "volts", "value": json.battery_volts},
+        {"name": "ultrasonic", "units": "m", "value": json.ultrasonic_m},
+        {"name": "rangefinder", "units": "m", "value": json.rangefinder_m}
+    ];
 
     return {
         timestamp: (new Date()).toISOString(),
@@ -50,21 +53,24 @@ module.exports = {
      * @param baudRate The baudRate of the serial device
      */
     start: function (device, baudRate) {
-        console.info("Start monitor with: ", dev, baudRate);
+        console.info("Start monitor with: ", device, baudRate);
         const esp32 = new SerialPort(device, {baudRate: baudRate});
         esp32.on("data", function (data) {
-            try {
-                DataEmitter.emit("data", parseData(data));
-            } catch (err) {
-                console.error("Error parsing data: ", err);
-            }
+            data.toString().split("\r\n").forEach(function (line) {
+                if (!line.trim()) return;
+                try {
+                    DataEmitter.emit("data", parseData(line));
+                } catch (err) {
+                    console.error("Error parsing data: ", err);
+                }
+            });
         });
     },
     /**
      * Register event handlers to be notified of 'data'
      *
      */
-    on: DataEmitter.on.bind(module.exports)
+    on: DataEmitter.on.bind(DataEmitter)
 }
 
 
@@ -75,7 +81,6 @@ if (require.main == module) {
     var args = process.argv.slice();
 
     if (args.length > 2) {
-        console.log("Dev set");
         dev = args[2];
     }
 
