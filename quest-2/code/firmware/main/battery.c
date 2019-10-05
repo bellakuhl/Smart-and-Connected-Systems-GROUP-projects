@@ -35,18 +35,12 @@ float battery_monitor_read_volts()
     uint32_t adc_reading = 0;
 
     for (int i = 0; i < NO_OF_SAMPLES; i++) {                             // get multiple samples
-        if (unit == ADC_UNIT_1) {
-            adc_reading += adc1_get_raw((adc1_channel_t)channel);
-        } else {
-            int raw;
-            adc2_get_raw((adc2_channel_t)channel, ADC_WIDTH_BIT_12, &raw);
-            adc_reading += raw;
-        }
+        adc_reading += adc1_get_raw((adc1_channel_t)channel);
     }
     adc_reading /= NO_OF_SAMPLES;                                         // average samples
 
     float voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);   // convert adc_reading to  mV
     voltage /= 1000;  // convert to volts
 
-    return voltage;
+    return voltage * 2;
 }
