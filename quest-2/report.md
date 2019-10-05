@@ -91,6 +91,39 @@ to the URL and the page will render with the contents of the file.
 
 ## Sketches and Photos
 
+## Investigative Question
+
+
+### Ultrasonic Sensor
+
+Based on the [datasheet][1] the ultrsonic sensor will update its 
+readings every 50 milliseconds, so should not be sampled faster 
+than 20 Hz.
+
+
+### Infrared Distance Sensor
+
+The timing chart in the [datasheet][2]
+(page 4) shows that the diststance sensor has a measurement period
+of approximately 38.3ms ± 9.6ms, so the maximum  sampling rate should
+be between 21Hz and 34Hz.
+
+Additionally, the timing chart indicates shows the first measurement
+as being unuseable, so the initial sample should be delayed 43ms ± 9.6ms 
+after being powered on.
+
+
+### Battery & Thermistor
+
+The batter and thermistor readings are both limited by the sample rate
+of the ADCs provided by the ESP32. From page 23 of the [ESP32 
+datasheet][3], The maximum sampling rate of the inputs on the RTC 
+Controller are 20ksps inditcating a maximum sampling rate of 20kHz.
+
+[1]: https://www.maxbotix.com/documents/LV-MaxSonar-EZ_Datasheet.pdf
+[2]: https://www.sparkfun.com/datasheets/Sensors/Infrared/gp2y0a02yk_e.pdf
+[3]: https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf#page=30
+
 
 ## Supporting Artifacts
 - [Link to repo]()
