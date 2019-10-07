@@ -32,8 +32,8 @@ voltage converts volts into meters based on information from the datasheet  for 
 circuit every 2 seconds and converts the voltage into celcius based on thermistors 
 characteristics described in the datasheet.
 
-**Results Graphed at Host** - The web sever, running on port 8080, graphs the data from
-the senors on CanvasJS charts.
+**Results Graphed at Host** - The web server, running on port 8080, graphs the data from
+the sensors on CanvasJS charts.
 
 **Results graphed continuouly based on reporting period** - The webpage receives new
 data every 2 seconds via a websocket and updates the graphs. It keeps a 1 minute window of
