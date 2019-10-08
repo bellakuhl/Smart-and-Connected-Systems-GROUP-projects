@@ -34,7 +34,7 @@ int thermistor_mf2_init()
 
 float thermistor_mf2_read_celcius()
 {
-	
+
         uint32_t adc_reading = 0;
         //Multisampling
         for (int i = 0; i < NO_OF_SAMPLES; i++) {
@@ -49,10 +49,10 @@ float thermistor_mf2_read_celcius()
         adc_reading /= NO_OF_SAMPLES;
         //Convert adc_reading to voltage in mV
         uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
-        float resistance = (3.33/((float) voltage/1000))-1; 	// Using 3.33V
+        float resistance = (5.5f/((float) voltage/1000))-1; 	// Using 3.33V
         float room_temp = 298.15; 			//25 degrees C in Kelvin
         float temp = 1/(((float)1/room_temp)+(((float)1/3435)*(log((float)resistance/10))));
         float celc = temp - 273.15; //convert to degrees celsius
-    
+
     	return celc;
 }
