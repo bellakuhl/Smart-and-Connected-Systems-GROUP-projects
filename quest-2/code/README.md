@@ -35,3 +35,11 @@ All of the code needed to run the webserver is in the `server` directory.
   the device identifier for the ESP serial montior (i.e. COM4, /dev/ttyUSB0, etc)
 * Open in a browser: http://localhost:8080
 
+The homepage, without any URL parameters, will live stream the data being recorded
+ever 2 seconds, but can also render a static CSV. To do so, simply add to the url,
+`?csv=<filename>` to render the file.
+
+By default the server will write the data it's recording to a file named `sensors.csv`.
+If you want to record to a different file, star the server passing the filename as
+the third argument: `node index.js <serial device> <output file>`.
+
