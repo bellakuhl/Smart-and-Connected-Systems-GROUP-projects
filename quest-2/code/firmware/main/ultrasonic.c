@@ -8,11 +8,11 @@
 #include "esp_adc_cal.h"
 
 #define DEFAULT_VREF    1100        //Use adc2_vref_to_gpio() to obtain a better estimate
-#define NO_OF_SAMPLES   100         //Multisampling
+#define NO_OF_SAMPLES   40         //Multisampling
 
 static esp_adc_cal_characteristics_t *adc_chars;
-static const adc_channel_t channel = ADC_CHANNEL_0;     //GPIO32 if ADC1, GPIO13 if ADC2
-static const adc_atten_t atten = ADC_ATTEN_DB_0;
+static const adc_channel_t channel = ADC_CHANNEL_4;     //GPIO32 if ADC1, GPIO13 if ADC2
+static const adc_atten_t atten = ADC_ATTEN_DB_6;
 static const adc_unit_t unit = ADC_UNIT_1; 			//ADC1
 
 int ultrasonic_init()
@@ -37,8 +37,7 @@ float ultrasonic_read_meters()
     adc_reading /= NO_OF_SAMPLES;
     //Convert adc_reading to voltage in mV
     uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
-    printf("UV: %d -", voltage);
-    uint32_t dist = (voltage / (5500.0f/512.0f));		// Using 5V
+    uint32_t dist = (voltage / (5000.0f/512.0f));		// Using 5V
     return dist * 0.0254;
 }
 
