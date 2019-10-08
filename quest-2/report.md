@@ -3,8 +3,7 @@ Authors: Isabella Kuhl, Laura Reeve, Joseph Rossi
 
 2019-10-01
 
-## Summary
-
+## Summary 
 For this quest we divided the work into two segments, the hardware layout and firmware 
 development running on the ESP32 and the web server/live plotting application for graphing
 the readings. Bella and Laura paired up to work on the hardware layout and firmware
@@ -53,7 +52,7 @@ capable of operating at 5.5V, we used the USB output pin to power the sensors. T
 each output from the sensor was hooked up to a different ADC input pin.  All sensors 
 were hooked up to channels on ADC unit 1.
 
-> TODO: Insert schematic
+<center><img src="./images/breadboard.png" width="80%"></center>
 
 
 ### Firmware
