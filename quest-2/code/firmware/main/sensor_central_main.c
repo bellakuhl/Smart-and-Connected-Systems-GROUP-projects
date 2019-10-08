@@ -78,6 +78,7 @@ void app_main(void)
     battery_monitor_int();
 #endif
 
+    vTaskDelay(150/portTICK_PERIOD_MS);// Initial reading for most sensors is unusable
     while (1)
     {
 
