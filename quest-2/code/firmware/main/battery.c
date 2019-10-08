@@ -48,5 +48,5 @@ float battery_monitor_read_volts()
     float voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);   // convert adc_reading to  mV
     voltage /= 1000;  // convert to volts
 
-    return voltage;
+    return voltage * 2; // Battery is in a voltage divided circuit
 }
