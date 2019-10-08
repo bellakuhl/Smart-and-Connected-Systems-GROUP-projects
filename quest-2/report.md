@@ -59,9 +59,9 @@ were hooked up to channels on ADC unit 1.
 
 The firmware for this project was broken up into four parts, one for each of the sensors. Each of these associated files are based on the ADC example code. Each of the components are polled by sensor_central_main.c every two seconds, at which point they each take 10 samples and average them. This data is then sent to the web server, which is further explained in the Software section.
 
-For the battery monitor, we measure the voltage using ADC.
-For the thermistor, we measure the voltage and then use this to calculate the resistance. From there, we calculate the temperature using the values given on the spec sheets for the NTC thermistor and convert those values from Kelvin to Celsius.
-For the ultrasonic sensor, we calculate the voltage across the sensor and divide by 9.88 to find the distance (9.88 is the value given on the spec sheet for the MaxSonar-1).
+For the battery monitor, we measure the voltage across a voltage divider consisting of two 10k reistors in series using ADC.
+For the thermistor, we again use a voltage divider to measure the voltage drop across the thermistor, then use this to calculate the resistance. From there, we calculate the temperature using the values given on the spec sheets for the NTC thermistor and convert those values from Kelvin to Celsius.
+For the ultrasonic sensor, we calculate the voltage outputted by the sensor and divide by 9.88 to find the distance (9.88 is the value given on the spec sheet for the MaxSonar-1).
 For the rangefinder, we used a formula from the Sharp IR arduino library to calculate the puntual distance (given the voltage) and then converted that to meters.
 
 All of these components are polled at the same time and the data is sent to the webserver and saved in a csv file.
