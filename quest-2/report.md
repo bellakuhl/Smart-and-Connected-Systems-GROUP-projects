@@ -117,9 +117,6 @@ string `?csv=sensors.csv` to the URL.  Live streaming  data is ignored when rend
 data from a file.
 
 
-## Sketches and Photos
-
-
 ## Investigative Question
 
 
