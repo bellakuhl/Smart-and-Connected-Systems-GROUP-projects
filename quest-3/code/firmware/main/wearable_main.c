@@ -128,7 +128,7 @@ static void wearable_server_report_sensors()
         }
 
         if (!settings.temperature_sensor_enabled) {
-            reading.temperature_degc = -1;
+            reading.temperature_degc = -100.0f;
         }
 
         if (!settings.battery_sensor_enabled) {
