@@ -12,13 +12,13 @@
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
 
-#define WIFI_SSID   "Group_15"
-#define WIFI_PASS   "smart-systems"
+#define WIFI_SSID   CONFIG_WIFI_SSID
+#define WIFI_PASS   CONFIG_WIFI_PASSPHRASE
 #define WIFI_MAXIMUM_RETRY  5
 
-#define PI_IP_ADDR            "192.168.1.108"
-#define PI_PORT               8080
-#define LOCAL_SOCKET_PORT     8080
+#define PI_IP_ADDR            CONFIG_PI_IP_ADDR
+#define PI_PORT               CONFIG_PI_PORT
+#define LOCAL_SOCKET_PORT     CONFIG_UDP_LISTEN_PORT
 
 const int WIFI_CONNECTED_BIT = BIT0;
 
@@ -44,7 +44,6 @@ static void serialize_reading_json(
         alert_period_seconds
     );
 }
-
 
 
 static esp_err_t event_handler(void *ctx, system_event_t *event)
