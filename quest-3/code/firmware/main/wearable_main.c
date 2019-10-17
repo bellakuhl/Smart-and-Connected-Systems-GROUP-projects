@@ -4,7 +4,7 @@
 #include "freertos/event_groups.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
-#include "esp_event.h"
+#include "esp_event_loop.h"
 #include "nvs_flash.h"
 #include "wearable.h"
 
@@ -12,34 +12,34 @@
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
 
-
 #define WIFI_SSID   "Group_15"
 #define WIFI_PASS   "smart-systems"
 #define WIFI_MAXIMUM_RETRY  5
 
-#define PI_IP_ADDR  "192.168.1.108"
-#define PI_PORT     8080
+#define PI_IP_ADDR            "192.168.1.108"
+#define PI_PORT               8080
+#define LOCAL_SOCKET_PORT     8080
 
 const int WIFI_CONNECTED_BIT = BIT0;
 
 static int s_retry_num = 0;
 static EventGroupHandle_t s_wifi_event_group;
-static wearable_settings_t settings;
+static WearableSettings_t settings;
 
 static void serialize_reading_json(
-        wearable_sensor_reading_t *reading,
+        WearableSensorReading_t *reading,
         uint32_t alert_period_seconds,
         char *dst, uint32_t size)
 {
-    char *fmt = "{\"battery_volts\": %.3f, \"bodytemp_degc\": %.3f,"
+    char *fmt = "{\"battery_volts\": %.3f, \"temperature_degc\": %.3f,"
                  "\"steps\": %d, \"alert_period_seconds\": %d}";
 
     memset(dst, 0, size);
     sprintf(
         dst,
         fmt,
-        reading->battery_level_volts,
-        reading->body_temperature_degc,
+        reading->battery_volts,
+        reading->temperature_degc,
         reading->steps,
         alert_period_seconds
     );
@@ -112,7 +112,7 @@ static void wearable_server_report_sensors()
     int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
     char addr_str[128];
     char payload[1024];
-    wearable_sensor_reading_t reading;
+    WearableSensorReading_t reading;
 
     while (1)
     {
@@ -129,11 +129,11 @@ static void wearable_server_report_sensors()
         }
 
         if (!settings.temperature_sensor_enabled) {
-            reading.body_temperature_degc = -1;
+            reading.temperature_degc = -1;
         }
 
         if (!settings.battery_sensor_enabled) {
-            reading.battery_level_volts = -1;
+            reading.battery_volts = -1;
         }
 
         serialize_reading_json(
@@ -160,16 +160,10 @@ static void wearable_server_report_sensors()
 }
 
 
-static void update_settings()
+static void update_settings(WearableSettings_t *new_settings)
 {
-    wearable_sensor_set_enable(
-            WEARABLE_SENSOR_STEP, settings.step_sensor_enabled);
-
-    wearable_sensor_set_enable(
-            WEARABLE_SENSOR_TEMPERATURE, settings.temperature_sensor_enabled);
-
-    wearable_sensor_set_enable(
-            WEARABLE_SENSOR_BATTERY, settings.battery_sensor_enabled);
+    // Apply the settings
+    memcpy(&settings, new_settings, sizeof(WearableSettings_t));
 
     wearable_schedule_alert(settings.alert_period_sec);
 
@@ -183,14 +177,15 @@ static void wearable_init()
 {
     wearable_sensors_init();
     wearable_server_init();
+    WearableSettings_t default_settings = {
+        .battery_sensor_enabled = 1,
+        .temperature_sensor_enabled = 1,
+        .step_sensor_enabled = 1,
+        .alert_now = 0,
+        .alert_period_sec = 5
+    };
 
-    settings.battery_sensor_enabled = 1;
-    settings.temperature_sensor_enabled = 1;
-    settings.step_sensor_enabled = 1;
-    settings.alert_now = 0;
-    settings.alert_period_sec = 5;
-
-    update_settings();
+    update_settings(&default_settings);
 }
 
 #define RX_BUFFER_SIZE 128
@@ -200,7 +195,7 @@ static void wearable_server_recv()
     struct sockaddr_in me;
     memset((char *) &me, 0, sizeof(me));
     me.sin_family = AF_INET;
-    me.sin_port = htons(8080);
+    me.sin_port = htons(LOCAL_SOCKET_PORT);
     me.sin_addr.s_addr = inet_addr("192.168.1.124");
 
     if (bind(sock, (struct sockaddr*) &me, sizeof(me))==-1)
@@ -226,12 +221,15 @@ static void wearable_server_recv()
             printf("Failed to recv from socket: %d", errno);
         }
         else {
-            if (len != sizeof(wearable_settings_t)) {
-                printf("Ignoring message: %d\n", len);
+            // Perhaps we shoudl check the first few bytes to parse
+            // what kind of message this is, but this is easier for now.
+            if (len != sizeof(WearableSettings_t)) {
+                printf("Ignoring unknown message size: %d\n", len);
                 continue;
             }
-            wearable_settings_t *data = (wearable_settings_t *)rx_buffer;
-            printf("Battery: %d, Temp: %d, Step: %d, Alert: %d, Period: %d\n",
+
+            WearableSettings_t *data = (WearableSettings_t *)rx_buffer;
+            printf("Received Message - Battery: %d, Temp: %d, Step: %d, Alert: %d, Period: %d\n",
                 data->battery_sensor_enabled,
                 data->temperature_sensor_enabled,
                 data->step_sensor_enabled,
@@ -239,13 +237,7 @@ static void wearable_server_recv()
                 data->alert_period_sec
              );
 
-            settings.battery_sensor_enabled = data->battery_sensor_enabled;
-            settings.temperature_sensor_enabled = data->temperature_sensor_enabled;
-            settings.step_sensor_enabled = data->step_sensor_enabled;
-            settings.alert_period_sec = data->alert_period_sec;
-            settings.alert_now = data->alert_now;
-
-            update_settings();
+            update_settings(data);
         }
     }
 }
