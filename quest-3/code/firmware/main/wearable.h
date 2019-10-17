@@ -1,10 +1,13 @@
+// Joseph Rossi, Isabella Kuhl, Laura Reeve
 #ifndef __TEAM15_WEARABLE__
 #define __TEAM15_WEARABLE__
+
+#include <stdint.h>
 
 #define HOME_STATION_IP "192.168.1.108"
 
 typedef enum {
-    WEARABLE_SENSOR_STEP,
+    WEARABLE_SENSOR_STEP = 0,
     WEARABLE_SENSOR_TEMPERATURE,
     WEARABLE_SENSOR_BATTERY,
     WEARABLE_NUM_SENSORS
@@ -12,13 +15,13 @@ typedef enum {
 
 
 typedef enum {
-    SENSOR_DISABLED,
+    SENSOR_DISABLED = 0,
     SENSOR_ENABLED
 } wearable_sensor_en_t;
 
 
 typedef enum {
-    WEARABLE_ALERT_DRINK_WATER
+    WEARABLE_ALERT_DRINK_WATER,
     WEARABLE_NUM_ALERTS
 } wearable_alert_t;
 
@@ -28,18 +31,27 @@ typedef struct {
     float body_temperature_degc;
 
     /* The current batter level in volts. If disabled, this should be -1 */
-    float batter_level_volts;
+    float battery_level_volts;
 
     /* The number of steps recorded. If steps is disabled, this should be -1 */
     int32_t steps;
 } wearable_sensor_reading_t;
 
 
+typedef struct {
+    int8_t battery_sensor_enabled;
+    int8_t temperature_sensor_enabled;
+    int8_t step_sensor_enabled;
+    uint8_t alert_now;
+    uint32_t alert_period_sec;
+} wearable_settings_t;
+
+
 /**
  * When called this funciton should initialize all sensors (configure GPIOs, PWMs, etc)
- * so they are ready to be read via `wearable_biometrics_read`
+ * so they are ready to be read via `wearable_sensors_read`
  */
-void wearable_biometrics_init_sensors();
+void wearable_sensors_init();
 
 
 /*
@@ -48,18 +60,18 @@ void wearable_biometrics_init_sensors();
  *
  * Any value for a sensor that is disabled should be -1.
  */
-int wearable_biometrics_read(wearable_sensor_reading_t *reading);
+int wearable_sensors_read(wearable_sensor_reading_t *reading);
 
 
 /*
  * Returns whether or not `sensor` is enabled and recording data.
  */
-wearable_sensor_en_t wearable_biometric_sensor_get_enable(wearable_sensor_t sensor);
+wearable_sensor_en_t wearable_sensor_get_enable(wearable_sensor_t sensor);
 
 /*
  * Enable or disable `sensor` from recording values.
  */
-void wearable_biometric_sensor_set_enable(wearable_sensor_t sensor, wearable_sensor_en_t);
+void wearable_sensor_set_enable(wearable_sensor_t sensor, wearable_sensor_en_t en_state);
 
 
 /*
