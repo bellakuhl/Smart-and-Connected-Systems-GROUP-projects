@@ -50,10 +50,12 @@ void wearable_sensors_init();
  * When called, the `reading` argument should be populated with
  * the latest reading from the appropriate sensors.
  *
- * If the sensors are disabled, the newtwork logic will take care of masking
- * the values from being sent.
+ * If the sensors are disabled, the following values are expected:
+ *   temperature_degc: -100
+ *   battery_volts: -1
+ *   steps: -1
  */
-int wearable_sensors_read(WearableSensorReading_t *reading);
+int wearable_sensors_read(WearableSettings_t *settings, WearableSensorReading_t *reading);
 
 
 /*

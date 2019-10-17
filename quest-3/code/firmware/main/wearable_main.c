@@ -121,20 +121,7 @@ static void wearable_server_report_sensors()
         destAddr.sin_port = htons(PI_PORT);
         inet_ntoa_r(destAddr.sin_addr, addr_str, sizeof(char)*128 - 1);
 
-        wearable_sensors_read(&reading);
-
-        if (!settings.step_sensor_enabled) {
-            reading.steps = -1;
-        }
-
-        if (!settings.temperature_sensor_enabled) {
-            reading.temperature_degc = -100.0f;
-        }
-
-        if (!settings.battery_sensor_enabled) {
-            reading.battery_volts = -1;
-        }
-
+        wearable_sensors_read(&settings, &reading);
         serialize_reading_json(
                 &reading,
                 settings.alert_period_sec,
