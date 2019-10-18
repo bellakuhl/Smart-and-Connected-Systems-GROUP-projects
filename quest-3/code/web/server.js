@@ -64,17 +64,18 @@ udp_socket.on("message", function (message, remote) {
 udp_socket.bind(UDP_PORT, UDP_HOST);
 
 // Web API
-app.use(express.static("static"));
+app.use("/static", express.static("static"));
+app.use("/node_modules", express.static("node_modules"));
 app.use(express.json());
 app.post("/sensor/:name/enable", function (request, response) {
     const sensor = request.params.name;
-    if (sensor == "battery") {
+    if (sensor === "battery") {
         WEARABLE_SETTINGS.battery_sensor_enabled = 1;
     }
-    else if (sensor == "temperature") {
+    else if (sensor === "temperature") {
         WEARABLE_SETTINGS.temperature_sensor_enabled = 1;
     }
-    else if (sensor == "step") {
+    else if (sensor === "step") {
         WEARABLE_SETTINGS.step_sensor_enabled = 1;
     }
     else {
@@ -88,10 +89,10 @@ app.post("/sensor/:name/enable", function (request, response) {
 app.post("/sensor/:name/disable", function (request, response) {
     const sensor = request.params.name;
 
-    if (sensor == "battery") {
+    if (sensor === "battery") {
         WEARABLE_SETTINGS.battery_sensor_enabled = 0;
     }
-    else if (sensor == "temperature") {
+    else if (sensor === "temperature") {
         WEARABLE_SETTINGS.temperature_sensor_enabled = 0;
     }
     else if (sensor == "step") {
