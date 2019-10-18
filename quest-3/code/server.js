@@ -22,10 +22,10 @@ function serialize_data(settings) {
     data[2] = settings.step_en;
     data[3] = settings.alert_now;
 
-    data[4] = (settings.alert_period >> 0) & 0xFF;
+    data[4] = (settings.alert_period >> 0)  & 0xFF;
     data[5] = (settings.alert_period >> 4)  & 0xFF;
     data[6] = (settings.alert_period >> 8)  & 0xFF;
-    data[7] = (settings.alert_period >> 12)  & 0xFF;
+    data[7] = (settings.alert_period >> 12) & 0xFF;
     return data;
 }
 
