@@ -55,7 +55,7 @@ const wearableUpdateSettings = function (data) {
 udp_socket.on("message", function (message, remote) {
     try {
         const msg = JSON.parse(message); 
-        socket.emit("data", msg);
+        websocket.emit("data", msg);
     } catch(e) {
         console.error("Error parsing message: " + e);
     }
@@ -133,5 +133,36 @@ app.get("/", function (request, response) {
     response.sendFile("templates/index.html", {root: __dirname});
 });
 
+// Simulation
+var step_count = 0;
+function genMessage() {
+    step_count += Math.round(Math.random() * 2);
+    var msg = {
+        battery_volts: 3.3 + Math.random() * 2,
+        temperature_degc: 15 + Math.random() * 2,
+        steps: step_count
+    };
+
+    if (!WEARABLE_SETTINGS.battery_sensor_enabled) {
+        msg.battery_volts = -1;
+    }
+    if (!WEARABLE_SETTINGS.temperature_sensor_enabled) {
+        msg.battery_volts = -100;
+    }
+    if (!WEARABLE_SETTINGS.step_sensor_enabled) {
+        msg.steps = -1;
+    }
+
+    websocket.emit("data", msg);
+}
+
+function startSimulation() {
+    setTimeout(function () {
+        genMessage(); 
+        startSimulation();
+    }, 300);
+}
+
+startSimulation();
 server.listen(WEBSERVER_PORT);
 
