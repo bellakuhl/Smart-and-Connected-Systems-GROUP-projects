@@ -79,7 +79,6 @@
         var keys = ["temperature", "step", "battery"];
         keys.forEach(function (key) {
             var el = document.querySelector("#" + key + "-enable");
-            console.log(SETTINGS)
             var enabled = !!SETTINGS[key + "_sensor_enabled"]; 
             if (enabled) {
                 el.classList.add("on"); 
@@ -98,7 +97,8 @@
 
 
     function setupSocket() {
-        var socket = io("http://localhost:8000");
+        var host = window.location.host;
+        var socket = io("http://"+ host + ":8000");
         socket.on("data", function (data) {
             updateCharts(data);
         });
