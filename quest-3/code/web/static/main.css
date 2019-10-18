@@ -264,13 +264,19 @@ textarea {
   }
 }
 
-.chart-wrapper {
+.chart-wrapper,
+.alert-wrapper 
+{
     width: 90%;
     margin: 1em auto;
 }
 
-.chart-wrapper label {
+label {
     font-weight: bold;
+}
+
+.alert-period label {
+    display: block;
 }
 
 .chart-container {
@@ -278,18 +284,28 @@ textarea {
     height: 100px;
 }
 
-.chart-container canvas {
+.alert-controls {
+    display: flex;
+    height: 44px;
+}
+
+.chart-container canvas,
+.alert-controls .alert-period 
+{
     flex-grow: 1;
 }
 
-.chart-container button {
+
+.chart-container button,
+.alert-controls button
+{
     flex-grow: 0;
     flex-shrink: 0;
     flex-basis: 100px;
     margin-left: 10px;
 }
 
-.chart-container button {
+button {
     text-align: center;
     background-color: #eee;
     text-decoration: none;
@@ -298,8 +314,18 @@ textarea {
     border-radius: 20px;
 }
 
+#triggerAlert {
+    background-color: #B35952;
+    cursor: pointer;
+    color: white;
+}
+
+#triggerAlert:hover {
+    background-color: #BF5F58;
+}
+
 .chart-container button.on {
-    background-color: #00b31c;
+    background-color: #64B385;
     color: white;
 }
 
@@ -311,7 +337,7 @@ textarea {
     background-color: #aaa;
 }
 .chart-container button:hover.on {
-    background-color: #1ca451;
+    background-color: #C2FFDB;
 }
 
 .header {
