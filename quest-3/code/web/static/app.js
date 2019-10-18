@@ -4,6 +4,22 @@
     var CHART_DATA = {};
     var TOGGLE_BUTTONS = {};
 
+    function debounce(func, ms) {
+        var timeout = setTimeout(func, ms);
+
+        return function () {
+            clearTimeout(timeout);
+            timeout = setTimeout(func, ms);
+        };
+    }
+
+    function getAlertElements() {
+        return {
+            input: document.querySelector("input.alert-value"),
+            trigger: document.querySelector("#triggerAlert")
+        };
+    }
+
     function setLoading(loading) {
         if (loading) {
             document.querySelector("#loading").classList.remove("hidden");
@@ -76,6 +92,7 @@
     }
 
     function updateActions() {
+        // Chart Toggles
         var keys = ["temperature", "step", "battery"];
         keys.forEach(function (key) {
             var el = document.querySelector("#" + key + "-enable");
@@ -89,6 +106,9 @@
                 el.textContent = "Off";
             }
         });
+
+        // Alter Periods
+        getAlertElements().input.value = SETTINGS.alert_period_seconds;
     }
 
     function getSettings() {
@@ -104,20 +124,29 @@
         });
     }
 
-    function button_clicked(event) {
+    function chart_enable_clicked(event) {
         console.log("Clicked");
         var sensor = event.target.id.split("-")[0]; 
         var state = !!SETTINGS[sensor + "_sensor_enabled"];
         setSensorState(sensor, !state);
     }
+
+    function alertInputChanged() {
+        var alertElements = getAlertElements();
+        var value = parseInt(alertElements.input.value, 10);
+        setAlertPeriodSeconds(value);
+    }
     
     function init() {
-        document.querySelectorAll("button").forEach(function (btn) {
-            btn.addEventListener("click", button_clicked);
+        var alertElements = getAlertElements();
+        document.querySelectorAll(".chart-wrapper button").forEach(function (btn) {
+            btn.addEventListener("click", chart_enable_clicked);
         });
-        getSettings().then(function (response) {
-            SETTINGS = response.data;
 
+        alertElements.input.addEventListener("input", debounce(alertInputChanged, 300));
+        alertElements.trigger.addEventListener("click", triggerAlert);
+
+        getSettings().then(function (response) { SETTINGS = response.data;
             initCharts(); 
             updateActions();
             setupSocket();
