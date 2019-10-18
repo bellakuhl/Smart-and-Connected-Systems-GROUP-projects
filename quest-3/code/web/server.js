@@ -26,7 +26,7 @@ const WEARABLE_SETTINGS = {
     temperature_sensor_enabled: 1,
     step_sensor_enabled: 1,
     alert_now: 0,
-    alter_period_seconds: 5
+    alert_period_seconds: 5
 };
 
 function serialize_data(settings) {
