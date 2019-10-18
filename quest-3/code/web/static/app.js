@@ -107,7 +107,7 @@
             }
         });
 
-        // Alter Periods
+        // Alert Period
         getAlertElements().input.value = SETTINGS.alert_period_seconds;
     }
 
@@ -134,7 +134,9 @@
     function alertInputChanged() {
         var alertElements = getAlertElements();
         var value = parseInt(alertElements.input.value, 10);
-        setAlertPeriodSeconds(value);
+        if (!isNaN(value) && value !== SETTINGS.alert_period_seconds) {
+            setAlertPeriodSeconds(value);
+        }
     }
     
     function init() {
