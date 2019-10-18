@@ -68,10 +68,15 @@
             var selector = "#" + key + "-canvas";
             var el = document.querySelector(selector);
 
-            CHARTS[key] = new SmoothieChart({responsive: true});
+            CHARTS[key] = new SmoothieChart({
+                responsive: true, 
+                interpolation: "linear",
+                tooltip: true,
+                timestampFormatter: SmoothieChart.timeFormatter
+            });
             CHARTS[key].streamTo(el);
             CHART_DATA[key] = new TimeSeries();
-            CHARTS[key].addTimeSeries(CHART_DATA[key]);
+            CHARTS[key].addTimeSeries(CHART_DATA[key], {lineWidth:2, strokeStyle:'#00ff00'});
         });
     }
 
@@ -117,15 +122,14 @@
 
 
     function setupSocket() {
-        var host = window.location.host;
-        var socket = io("http://"+ host + ":8000");
+        var socket = io(window.location.origin);
+
         socket.on("data", function (data) {
             updateCharts(data);
         });
     }
 
     function chart_enable_clicked(event) {
-        console.log("Clicked");
         var sensor = event.target.id.split("-")[0]; 
         var state = !!SETTINGS[sensor + "_sensor_enabled"];
         setSensorState(sensor, !state);
