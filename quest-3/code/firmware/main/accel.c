@@ -151,26 +151,26 @@ dataRate_t getDataRate(void) {
 // Task to continuously poll acceleration and calculate roll and pitch
 
 /*Function to find minimum of x and y*/
-double min(double x, double y) 
-{ 
+double min(double x, double y)
+{
   if (x < y){
     return x;
   }
   else{
     return y;
   }
-} 
-  
+}
+
 /*Function to find maximum of x and y*/
-double max(double x, double y) 
-{ 
+double max(double x, double y)
+{
   if (x > y){
     return x;
   }
   else{
     return y;
   }
-} 
+}
 
 
 // Function to count steps
@@ -244,7 +244,7 @@ void accel_init(){
 
   // Set range
   setRange(ADXL343_RANGE_16_G);
-  
+
 
   // Enable measurements
   writeRegister(ADXL343_REG_POWER_CTL, 0x08);
@@ -276,7 +276,7 @@ int accel_step_count(){
 
   // Set range
   setRange(ADXL343_RANGE_16_G);
-  
+
 
   // Enable measurements
   writeRegister(ADXL343_REG_POWER_CTL, 0x08);

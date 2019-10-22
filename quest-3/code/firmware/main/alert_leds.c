@@ -16,7 +16,7 @@
 static void water_alert(){
 	gpio_pad_select_gpio(GPIO_2);
     gpio_set_direction(GPIO_2, GPIO_MODE_OUTPUT);
-    
+
     while(1){
 	    // Flash for five seconds
 	    gpio_set_level(GPIO_2, 1); // Flash on
