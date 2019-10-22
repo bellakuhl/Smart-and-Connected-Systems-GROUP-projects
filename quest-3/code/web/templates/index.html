@@ -1,0 +1,60 @@
+<!-- Joseph Rossi -->
+<!doctype html>
+<html>
+    <head>
+          <meta charset="utf-8">
+          <title>EC44 Quest 3</title>
+          <meta name="description" content="">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <link rel="stylesheet" href="/static/normalize.css">
+          <link rel="stylesheet" href="/static/main.css">
+          <meta name="theme-color" content="#fafafa">
+    </head>
+    <body>
+        <div id="loading" class="loader">Loading</div>
+        <div id="content" class="hidden">
+            <div class="header">
+                <h2>T15 Data</h2>
+            </div>
+            <div class="alert-wrapper">
+                <div class="alert-controls">
+                    <div class="alert-period">
+                        <label>Drink Water Period</label>
+                        <input class="alert-value" type="number" />
+                    </div>
+                    <button id="triggerAlert" class="trigger-alert">
+                        Find Device
+                    </button>
+                </div>
+            </div>
+            <div class="chart-wrapper">
+                <label>Battery (V)</label>
+                <div class="chart-container">
+                    <canvas id="battery-canvas"></canvas>
+                    <button id="battery-enable" type="button"></button>
+                </div>
+            </div>
+
+            <div class="chart-wrapper">
+                <label>Temperature (degC)</label>
+                <div class="chart-container">
+                    <canvas id="temperature-canvas"></canvas>
+                    <button id="temperature-enable" type="button"></button>
+                </div>
+            </div>
+
+            <div class="chart-wrapper">
+                <label>Steps</label>
+                <div class="chart-container">
+                    <canvas id="steps-canvas"></canvas>
+                    <button id="step-enable" type="button"></button>
+                </div>
+            </div>
+        </div>
+        <script src="/node_modules/socket.io-client/dist/socket.io.js"></script>
+        <script src="/static/axios.min.js"></script>
+        <script src="/static/smoothie.js"></script>
+        <script src="/static/app.js"></script>
+    </body>
+</html>
+
