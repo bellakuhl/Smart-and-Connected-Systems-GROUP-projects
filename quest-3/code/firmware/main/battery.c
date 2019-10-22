@@ -1,4 +1,9 @@
-// Adapted from battery monitor skill
+/*
+*  Isabella Kuhl, Joseph Rossi, Laura Reeve
+*  Adpated from the battery moniter skill
+*/
+
+
 
 #include <stdio.h>
 #include <stdlib.h>
