@@ -24,7 +24,7 @@ Remote access to turn off features (i.e., only measure steps but no temperature)
 
 ### Hardware
 
-Below is a diagram of the wiring setup for the fitness tracker:
+Below is a diagram of the wiring setup for the fitness tracker. Each sensor uses 3.3v from the ESP32 and the battery monitor and thermistor use the ADC pins. The LED are connected using 220 ohm resistors to GPIO pins. Finally, the accelerometer uses SDA and SCL pins to communicate over I2C.
 
 ![wiring diagram]()
 
@@ -48,6 +48,16 @@ For the alert system, we have two different alerts that the user can implement. 
 
 - [Link to repo]()
 - [Link to video demo]()
+
+### Investigative Question
+
+**What are steps you can take to make your device and system low power?**
+
+In order to make the system low power we would redesign the system to draw less current. One adjust that would achieve this is switching the pedometer feature to use a tilt switch rather than an accelerometer. As a passive element, the tilt switch draws minimal current where as the accelerometer uses I2C and an on board IC to calculate orientation. While the accelerometer gives a more accurate step reading, the tilt switch would lower the overall power usage of the track.
+
+Another way to lower power usage is reducing the frequency at which data is sent to the server. Pushing data to the server via WiFi draws a lot of current so collecting data and pushing every five seconds rather than in real time would decrease the number of times a packet is sent and therefore the total current drawn.
+
+A final method of reducing power is to implement a sleep mode that stops collecting steps and temperature when the user is sitting down or sleeping. Reducing the amount of data collected each second and the number of sensors running will reduce current drawn.
 
 
 ## References
