@@ -24,11 +24,13 @@ Remote access to turn off features (i.e., only measure steps but no temperature)
 
 ### Hardware
 
-Add schematic
+Below is a diagram of the wiring setup for the fitness tracker:
+
+![wiring diagram]()
 
 ### Firmware
 
-The firmware was broken up into parts for the temperature, battery level, step counter, and alert system. The temperature and battery level files are based on the ADC example code. For the battery monitor, we measure the voltage across a voltage divider consisting of two 10k reistors in series using ADC. For the thermistor, we again use a voltage divider to measure the voltage drop across the thermistor, then use this to calculate the resistance. From there, we calculate the temperature using the values given on the spec sheets for the NTC thermistor and convert those values from Kelvin to Celsius.
+The firmware was broken up into parts for the temperature, battery level, step counter, and alert system. The temperature and battery level files are based on the ADC example code. For the battery monitor, we measure the voltage across a voltage divider consisting of two 10k resistors in series using ADC. For the thermistor, we again use a voltage divider to measure the voltage drop across the thermistor, then use this to calculate the resistance. From there, we calculate the temperature using the values given on the spec sheets for the NTC thermistor and convert those values from Kelvin to Celsius.
 
 For the step counter, we used the ADXL343 Accelerometer and an i2c master-slave configuration to read in the acceleration in the x, y, and z directions. From here, we used the acceleration on the z-axis to measure steps. We do this because the vertical direction is where you get the greatest fluctuations when a person is walking. We have a threshold variable that that is updated every second that takes the mean of the max and min values from that second. When the z acceleration goes above that threshold, it is seen as a 'step'.
 
@@ -50,6 +52,11 @@ For the alert system, we have two different alerts that the user can implement. 
 
 ## References
 
+* We referenced Emily Lam's [base code](https://github.com/BU-EC444/code-examples/tree/master/i2c-accel) for accelerometers.
+
+* We referenced the [datasheet](https://cdn-learn.adafruit.com/assets/assets/000/070/556/original/adxl343.pdf?1549287964) for the accelerometer for connecting it and interpreting the values.
+
+* We used DFRobot's [tutorial](https://wiki.dfrobot.com/How_to_Use_a_Three-Axis_Accelerometer_for_Tilt_Sensing) for the equations to translate the x, y, z values from the sensor into pitch, roll, and yaw.
 -----
 
 ## Reminders
