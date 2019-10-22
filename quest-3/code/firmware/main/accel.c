@@ -20,6 +20,12 @@
 // ADXL343
 #define SLAVE_ADDR                         ADXL343_ADDRESS // 0x53
 
+int steps = 0, flag = 0;
+float x_vals[20];
+float y_vals[20];
+float z_vals[20];
+float threshold;
+
 // Function to initiate i2c -- note the MSB declaration!
 static void i2c_master_init(){
   // Debug
@@ -204,14 +210,14 @@ static void calibrate_ped() {
 }
 
 
-static void accel_step_counter() {
+static void step_counter() {
   printf("\n>> Polling ADAXL343\n");
   calibrate_ped();
   while (1) {
     //float xVal, yVal, zVal;
     //getAccel(&xVal, &yVal, &zVal);
     count_steps();
-    printf("Threshold: %.2f\t Steps: %d\n", threshold, steps);
+    //printf("Threshold: %.2f\t Steps: %d\n", threshold, steps);
 
     //calcRP(xVal, yVal, zVal);
     vTaskDelay(50 / portTICK_RATE_MS);
@@ -232,17 +238,21 @@ void accel_init(){
 
   // Enable measurements
   writeRegister(ADXL343_REG_POWER_CTL, 0x08);
-
+  xTaskCreate(step_counter,"step_counter", 4096, NULL, 5, NULL);
 }
 
 
-double accel_read_tilt(){
+int accel_step_count(){
+  return steps;
+}
+
+/*double accel_read_tilt(){
 	float xVal, yVal, zVal;
     getAccel(&xVal, &yVal, &zVal);
     tilt = calcRP(xVal, yVal, zVal);
     vTaskDelay(1000 / portTICK_RATE_MS);
     return tilt;
-}
+}*/
 
 /*void app_main() {
 
