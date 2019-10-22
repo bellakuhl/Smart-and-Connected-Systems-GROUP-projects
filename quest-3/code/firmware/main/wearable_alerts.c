@@ -73,6 +73,7 @@ void wearable_find_device(bool enable)
         xTaskCreate(find_device_task,"find_device_task", 4096, NULL, 5, &find_device_task_handle);
     }
     else if (find_device_task_handle != NULL) {
+    	gpio_set_level(GPIO_1, 0);
         vTaskDelete(find_device_task_handle);
     }
 }
