@@ -228,14 +228,7 @@ static void calibrate_ped() {
       mins[0] = min(mins[0], x_vals[i]);
       mins[1] = min(mins[1], y_vals[i]);
       mins[2] = min(mins[2], z_vals[i]);
-      if (z_vals[i] > threshold+.5 && flag==0){
-        steps=steps+1;
-        flag=1;
-        //printf("a step!\n");
-      }
-      if (z_vals[i] < threshold-.5 && flag==1){
-        flag=0;
-      }
+
       vTaskDelay(50 / portTICK_RATE_MS);
     }
     float range[] = {0,-1};
@@ -250,7 +243,7 @@ static void calibrate_ped() {
 
     threshold = (maxs[axis]+mins[axis])/2;
   }
-  steps=0, flag=0;
+
   printf("Finished calibration, beginning step counter.\n");
 }
 
