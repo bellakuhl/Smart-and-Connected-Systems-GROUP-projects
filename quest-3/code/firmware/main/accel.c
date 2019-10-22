@@ -150,15 +150,25 @@ dataRate_t getDataRate(void) {
 // Task to continuously poll acceleration and calculate roll and pitch
 
 /*Function to find minimum of x and y*/
-int min(int x, int y) 
+double min(double x, double y) 
 { 
-return y ^ ((x ^ y) & -(x < y)); 
+  if (x < y){
+    return x;
+  }
+  else{
+    return y;
+  }
 } 
   
 /*Function to find maximum of x and y*/
-int max(int x, int y) 
+double max(double x, double y) 
 { 
-return x ^ ((x ^ y) & -(x < y));  
+  if (x > y){
+    return x;
+  }
+  else{
+    return y;
+  }
 } 
 
 
@@ -216,12 +226,8 @@ static void step_counter() {
   printf("\n>> Polling ADAXL343\n");
   calibrate_ped();
   while (1) {
-    //float xVal, yVal, zVal;
-    //getAccel(&xVal, &yVal, &zVal);
+    // Continuously updating steps variable
     count_steps();
-    //printf("Threshold: %.2f\t Steps: %d\n", threshold, steps);
-
-    //calcRP(xVal, yVal, zVal);
     vTaskDelay(50 / portTICK_RATE_MS);
   }
 }
