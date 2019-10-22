@@ -114,6 +114,12 @@
 
         // Alert Period
         getAlertElements().input.value = SETTINGS.alert_period_seconds;
+        if (SETTINGS.alert_now) {
+            getAlertElements().trigger.classList.add("on");
+        }
+        else {
+            getAlertElements().trigger.classList.remove("on");
+        }
     }
 
     function getSettings() {

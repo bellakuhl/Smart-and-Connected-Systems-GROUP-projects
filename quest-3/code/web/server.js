@@ -48,7 +48,6 @@ function serialize_data(settings) {
 const wearableUpdateSettings = function (data) {
     udp_socket.send(serialize_data(data), WEARABLE_PORT, WEARABLE_IP, function(error) {
         if (error) { console.error("Error sending message!"); }
-        WEARABLE_SETTINGS.alert_now = 0;
     });
 };
 
@@ -107,7 +106,7 @@ app.post("/sensor/:name/disable", function (request, response) {
 });
 
 app.post("/alert/trigger", function (request, response) {
-    WEARABLE_SETTINGS.alert_now = 1;
+    WEARABLE_SETTINGS.alert_now ^= 1;
     wearableUpdateSettings(WEARABLE_SETTINGS);
     return response.json(WEARABLE_SETTINGS);
 });
