@@ -33,6 +33,7 @@ float x_vals[20];
 float y_vals[20];
 float z_vals[20];
 float threshold;
+float range;
 
 // Function to initiate i2c -- note the MSB declaration!
 static void i2c_master_init(){
@@ -198,12 +199,12 @@ static void count_steps() {
     //mins[0] = min(mins[0], x_vals[i]);
     //mins[1] = min(mins[1], y_vals[i]);
     mins[2] = min(mins[2], z_vals[i]);
-    if (z_vals[i] > threshold && flag==0){
+    if (z_vals[i] > threshold+.5 && flag==0){
       steps=steps+1;
       flag=1;
       //printf("a step!\n");
     }
-    if (z_vals[i] < threshold && flag==1){
+    if (z_vals[i] < threshold-.5 && flag==1){
       flag=0;
     }
     vTaskDelay(50 / portTICK_RATE_MS);
@@ -211,6 +212,7 @@ static void count_steps() {
   //avgs[0] = (maxs[0]+mins[0])/2;
   //avgs[1] = (maxs[1]+mins[1])/2;
   avgs[2] = (maxs[2]+mins[2])/2;
+  
   threshold = avgs[2];
 
 

@@ -7,6 +7,7 @@
 #define __TEAM15_WEARABLE__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum {
     WEARABLE_SENSOR_STEP = 0,
@@ -38,7 +39,7 @@ typedef struct {
     int8_t battery_sensor_enabled;
     int8_t temperature_sensor_enabled;
     int8_t step_sensor_enabled;
-    uint8_t alert_now;
+    uint8_t find_device;
     uint32_t alert_period_sec;
 } WearableSettings_t;
 
@@ -66,13 +67,13 @@ int wearable_sensors_read(WearableSettings_t *settings, WearableSensorReading_t 
  * Schedules alerts to trigger repeatedly every `period_sec` seconds.
  * To disable alerts,  pass `period_sec` as 0.
  */
-void wearable_schedule_alert(uint32_t period_sec);
+void wearable_schedule_water_alert(uint32_t period_sec);
 
 
 /*
- * Used to trigger an alert immediately.
+ * Used to turn on find device
  */
-void wearable_trigger_alert();
+void wearable_find_device(bool enable);
 
 void accel_init();
 int accel_step_count();
