@@ -1,3 +1,10 @@
+/*
+*  Isabella Kuhl, Joseph Rossi, Laura Reeve
+*  This program initializes the sensors and WiFi, formats
+*  the data and sends it to the server socket
+*
+*/
+
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -262,4 +269,3 @@ void app_main()
         NULL
     );
 }
-

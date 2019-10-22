@@ -1,3 +1,9 @@
+/*
+*  Isabella Kuhl, Joseph Rossi, Laura Reeve
+*  This program collects data from the sensors
+*
+*/
+
 #include "wearable.h"
 
 //#define MOCK
@@ -70,4 +76,3 @@ int wearable_sensors_read(WearableSettings_t *settings, WearableSensorReading_t 
     return 0;
 }
 #endif
-

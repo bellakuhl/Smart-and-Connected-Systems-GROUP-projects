@@ -1,5 +1,8 @@
-/* This file is based on the example blink.c code for LED flashing */
-
+/*
+*  Isabella Kuhl, Joseph Rossi, Laura Reeve
+*  This program is adapted from the blink LED example
+*
+*/
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"

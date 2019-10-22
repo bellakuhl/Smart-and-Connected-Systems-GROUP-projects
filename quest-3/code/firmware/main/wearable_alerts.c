@@ -1,3 +1,9 @@
+/*
+*  Isabella Kuhl, Joseph Rossi, Laura Reeve
+*  This program sets up alerts for water and location
+*
+*/
+
 #include "wearable.h"
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -70,4 +76,3 @@ void wearable_find_device(bool enable)
         vTaskDelete(find_device_task_handle);
     }
 }
-

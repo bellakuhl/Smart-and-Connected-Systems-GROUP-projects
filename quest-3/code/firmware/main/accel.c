@@ -1,3 +1,9 @@
+/*
+*  Isabella Kuhl, Joseph Rossi, Laura Reeve
+*  This program uses the accelerometer as a pedometer to
+*  count user steps
+*/
+
 #include <stdio.h>
 #include <math.h>
 #include "driver/i2c.h"
@@ -184,7 +190,7 @@ static void count_steps() {
   */
   double maxs = -100;
   double mins = 100;
-  double avgs = 0; 
+  double avgs = 0;
   for (int i=0;i<20;i++){
     vals[i] = read16(reg) * ADXL343_MG2G_MULTIPLIER * SENSORS_GRAVITY_STANDARD;
     maxs = max(maxs, vals[i]);
@@ -199,7 +205,7 @@ static void count_steps() {
     vTaskDelay(50 / portTICK_RATE_MS);
   }
   avgs = (maxs+mins)/2;
-  
+
   threshold = avgs;
 
 
@@ -316,5 +322,3 @@ int accel_step_count(){
   // Create task to poll ADXL343
   xTaskCreate(test_adxl343,"test_adxl343", 4096, NULL, 5, NULL);
 }*/
-
-

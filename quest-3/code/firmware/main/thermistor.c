@@ -1,3 +1,10 @@
+/*
+*  Isabella Kuhl, Joseph Rossi, Laura Reeve
+*  Adapted from the thermistor skill
+*/
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "freertos/FreeRTOS.h"
@@ -14,7 +21,7 @@
 
 
 static esp_adc_cal_characteristics_t *adc_chars;
-static const adc_channel_t channel = ADC_CHANNEL_3;     //GPIO34 if ADC1, GPIO14 if ADC2, huzzah pin A3
+static const adc_channel_t channel = ADC_CHANNEL_3;     //GPIO39 if ADC1 huzzah pin A3
 static const adc_atten_t atten = ADC_ATTEN_DB_11;
 static const adc_unit_t unit = ADC_UNIT_1;  			//ADC1
 
@@ -35,7 +42,7 @@ int thermistor_mf2_init()
 
 float thermistor_mf2_read_celcius()
 {
-	
+
         uint32_t adc_reading = 0;
         //Multisampling
         for (int i = 0; i < NO_OF_SAMPLES; i++) {
@@ -54,6 +61,6 @@ float thermistor_mf2_read_celcius()
         float room_temp = 298.15; 			//25 degrees C in Kelvin
         float temp = 1/(((float)1/room_temp)+(((float)1/3435)*(log((float)resistance/10))));
         float celc = temp - 273.15; //convert to degrees celsius
-    
+
     	return celc;
 }
