@@ -8,9 +8,9 @@ const io        = require("socket.io");
 
 // Settings
 const UDP_PORT  = 8080;
-const UDP_HOST  = "127.0.0.1";
+const UDP_HOST  = "192.168.1.108";
 
-const WEARABLE_IP = "192.168.1.124"; 
+const WEARABLE_IP = "192.168.1.102"; 
 const WEARABLE_PORT = 8080;
 const WEBSERVER_PORT = 8000;
 
@@ -162,6 +162,6 @@ function startSimulation() {
     }, 300);
 }
 
-startSimulation();
+//startSimulation();
 server.listen(WEBSERVER_PORT);
 
