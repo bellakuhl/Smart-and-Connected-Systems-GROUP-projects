@@ -64,16 +64,21 @@
 
     function initCharts() {
         var keys = ["battery", "temperature", "steps"];
-        keys.forEach(function (key) {
+        var options = [
+            {minValue: 0, maxValue: 5.0},
+            {minValue: 10, maxValue: 30},
+            {minValue: 0}
+        ];
+        keys.forEach(function (key, i, arr) {
             var selector = "#" + key + "-canvas";
             var el = document.querySelector(selector);
+            var chartOptions = options[i];
+            chartOptions.responsive = true; 
+            chartOptions.interpolation= "linear";
+            chartOptions.tooltip= true;
+            chartOptions.timestampFormatter= SmoothieChart.timeFormatter
 
-            CHARTS[key] = new SmoothieChart({
-                responsive: true, 
-                interpolation: "linear",
-                tooltip: true,
-                timestampFormatter: SmoothieChart.timeFormatter
-            });
+            CHARTS[key] = new SmoothieChart(chartOptions);
             CHARTS[key].streamTo(el);
             CHART_DATA[key] = new TimeSeries();
             CHARTS[key].addTimeSeries(CHART_DATA[key], {lineWidth:2, strokeStyle:'#00ff00'});
