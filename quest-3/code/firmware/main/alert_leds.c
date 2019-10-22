@@ -5,6 +5,8 @@
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "sdkconfig.h"
+#include "wearable.h"
+
 
 
 #define GPIO_1 33 // Red LED

@@ -10,7 +10,7 @@
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 #include "driver/i2c.h"
-#include "sensor_central.h"
+#include "wearable.h"
 
 #define DEFAULT_VREF    1100
 #define NO_OF_SAMPLES   10          // number of samples

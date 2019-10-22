@@ -1,4 +1,3 @@
-#include "sensor_central.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "freertos/FreeRTOS.h"
@@ -7,6 +6,8 @@
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
 #include <math.h>
+#include "wearable.h"
+
 
 #define DEFAULT_VREF    1100        //Use adc2_vref_to_gpio() to obtain a better estimate
 #define NO_OF_SAMPLES   10          //Multisampling

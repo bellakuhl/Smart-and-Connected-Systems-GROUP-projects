@@ -2,6 +2,8 @@
 #include <math.h>
 #include "driver/i2c.h"
 #include "./ADXL343.h"
+#include "wearable.h"
+
 
 // Master I2C
 #define I2C_EXAMPLE_MASTER_SCL_IO          22   // gpio number for i2c clk
@@ -226,7 +228,7 @@ static void step_counter() {
 
 void accel_init(){
   i2c_master_init();
-  i2c_scanner();
+  //i2c_scanner();
 
 
   // Disable interrupts
