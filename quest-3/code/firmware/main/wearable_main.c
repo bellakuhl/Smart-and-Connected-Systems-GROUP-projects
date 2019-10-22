@@ -12,6 +12,7 @@
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
 
+#define MY_IP       "192.168.1.102"
 #define WIFI_SSID   CONFIG_WIFI_SSID
 #define WIFI_PASS   CONFIG_WIFI_PASSPHRASE
 #define WIFI_MAXIMUM_RETRY  5
@@ -140,7 +141,7 @@ static void wearable_server_report_sensors()
             printf("Error sending sensor reading.\n");
         }
 
-        //printf("Sent message: %s\n", payload);
+        //printf("Sent message: %s to %s:%d\n", payload, PI_IP_ADDR, PI_PORT);
         vTaskDelay(2000/portTICK_PERIOD_MS);
     }
 }
@@ -151,12 +152,13 @@ static void update_settings(WearableSettings_t *new_settings)
     // Apply the settings
     memcpy(&settings, new_settings, sizeof(WearableSettings_t));
 
-    wearable_schedule_alert(settings.alert_period_sec);
+    printf("Schedule alert\n");
+    wearable_schedule_water_alert(settings.alert_period_sec);
+    printf("Schedule alert done\n");
 
-    if (settings.alert_now) {
-        wearable_trigger_alert();
-        settings.alert_now = 0;
-    }
+    printf("Find Device\n");
+    wearable_find_device(settings.find_device);
+    printf("Find Device done\n");
 }
 
 static void wearable_init()
@@ -167,7 +169,7 @@ static void wearable_init()
         .battery_sensor_enabled = 1,
         .temperature_sensor_enabled = 1,
         .step_sensor_enabled = 1,
-        .alert_now = 0,
+        .find_device = 0,
         .alert_period_sec = 5
     };
 
@@ -182,7 +184,7 @@ static void wearable_server_recv()
     memset((char *) &me, 0, sizeof(me));
     me.sin_family = AF_INET;
     me.sin_port = htons(LOCAL_SOCKET_PORT);
-    me.sin_addr.s_addr = inet_addr("192.168.1.124");
+    me.sin_addr.s_addr = inet_addr(MY_IP);
 
     if (bind(sock, (struct sockaddr*) &me, sizeof(me))==-1)
         printf("Bind failed\n");
@@ -219,7 +221,7 @@ static void wearable_server_recv()
                 data->battery_sensor_enabled,
                 data->temperature_sensor_enabled,
                 data->step_sensor_enabled,
-                data->alert_now,
+                data->find_device,
                 data->alert_period_sec
              );
 
