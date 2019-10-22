@@ -204,7 +204,7 @@ static void calibrate_ped() {
 }
 
 
-static void test_adxl343() {
+static void accel_step_counter() {
   printf("\n>> Polling ADAXL343\n");
   calibrate_ped();
   while (1) {

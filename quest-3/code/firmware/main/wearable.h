@@ -70,5 +70,16 @@ void wearable_schedule_alert(uint32_t period_sec);
  */
 void wearable_trigger_alert();
 
+void accel_init();
+int accel_step_count();
+
+int thermistor_mf2_init();
+float thermistor_mf2_read_celcius();
+
+int battery_monitor_int();
+float battery_monitor_read_volts();
+
+
+
 #endif
 
