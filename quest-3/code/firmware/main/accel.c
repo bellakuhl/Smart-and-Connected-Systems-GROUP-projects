@@ -1,3 +1,9 @@
+/* 
+*  Isabella Kuhl, Joseph Rossi, Laura Reeve
+*  This program uses the accelerometer as a pedometer to
+*  count user steps
+*/
+
 #include <stdio.h>
 #include <math.h>
 #include "driver/i2c.h"
@@ -150,26 +156,26 @@ dataRate_t getDataRate(void) {
 // Task to continuously poll acceleration and calculate roll and pitch
 
 /*Function to find minimum of x and y*/
-double min(double x, double y) 
-{ 
+double min(double x, double y)
+{
   if (x < y){
     return x;
   }
   else{
     return y;
   }
-} 
-  
+}
+
 /*Function to find maximum of x and y*/
-double max(double x, double y) 
-{ 
+double max(double x, double y)
+{
   if (x > y){
     return x;
   }
   else{
     return y;
   }
-} 
+}
 
 
 // Function to count steps
@@ -181,7 +187,7 @@ static void count_steps() {
   */
   double maxs[] = {-100, -100, -100};
   double mins[] = {100, 100, 100};
-  double avgs[] = {0, 0, 0}; 
+  double avgs[] = {0, 0, 0};
   for (int i=0;i<20;i++){
     //x_vals[i] = read16(ADXL343_REG_DATAX0) * ADXL343_MG2G_MULTIPLIER * SENSORS_GRAVITY_STANDARD;
     //y_vals[i] = read16(ADXL343_REG_DATAY0) * ADXL343_MG2G_MULTIPLIER * SENSORS_GRAVITY_STANDARD;
@@ -242,7 +248,7 @@ void accel_init(){
 
   // Set range
   setRange(ADXL343_RANGE_16_G);
-  
+
 
   // Enable measurements
   writeRegister(ADXL343_REG_POWER_CTL, 0x08);
@@ -274,7 +280,7 @@ int accel_step_count(){
 
   // Set range
   setRange(ADXL343_RANGE_16_G);
-  
+
 
   // Enable measurements
   writeRegister(ADXL343_REG_POWER_CTL, 0x08);
@@ -282,5 +288,3 @@ int accel_step_count(){
   // Create task to poll ADXL343
   xTaskCreate(test_adxl343,"test_adxl343", 4096, NULL, 5, NULL);
 }*/
-
-
