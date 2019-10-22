@@ -1,4 +1,8 @@
-// Joseph Rossi, Isabella Kuhl, Laura Reeve
+/*
+*  Isabella Kuhl, Joseph Rossi, Laura Reeve
+*
+*/
+
 #ifndef __TEAM15_WEARABLE__
 #define __TEAM15_WEARABLE__
 
@@ -83,4 +87,3 @@ float battery_monitor_read_volts();
 
 
 #endif
-
