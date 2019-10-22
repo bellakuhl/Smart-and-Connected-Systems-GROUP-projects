@@ -23,11 +23,13 @@
 #define SLAVE_ADDR                         ADXL343_ADDRESS // 0x53
 
 int steps = 0, flag = 0;
+float vals[20];
 float x_vals[20];
 float y_vals[20];
 float z_vals[20];
 float threshold;
-float range;
+int axis;
+uint8_t reg;
 
 // Function to initiate i2c -- note the MSB declaration!
 static void i2c_master_init(){
@@ -180,34 +182,25 @@ static void count_steps() {
   to find when the user takes a step because this is where you find the most
   consistent variation per step.
   */
-  double maxs[] = {-100, -100, -100};
-  double mins[] = {100, 100, 100};
-  double avgs[] = {0, 0, 0}; 
+  double maxs = -100;
+  double mins = 100;
+  double avgs = 0; 
   for (int i=0;i<20;i++){
-    //x_vals[i] = read16(ADXL343_REG_DATAX0) * ADXL343_MG2G_MULTIPLIER * SENSORS_GRAVITY_STANDARD;
-    //y_vals[i] = read16(ADXL343_REG_DATAY0) * ADXL343_MG2G_MULTIPLIER * SENSORS_GRAVITY_STANDARD;
-    z_vals[i] = read16(ADXL343_REG_DATAZ0) * ADXL343_MG2G_MULTIPLIER * SENSORS_GRAVITY_STANDARD;
-    //maxs[0] = max(maxs[0], x_vals[i]);
-    //maxs[1] = max(maxs[1], y_vals[i]);
-    maxs[2] = max(maxs[2], z_vals[i]);
-    //mins[0] = min(mins[0], x_vals[i]);
-    //mins[1] = min(mins[1], y_vals[i]);
-    mins[2] = min(mins[2], z_vals[i]);
-    if (z_vals[i] > threshold+.5 && flag==0){
+    vals[i] = read16(reg) * ADXL343_MG2G_MULTIPLIER * SENSORS_GRAVITY_STANDARD;
+    maxs = max(maxs, vals[i]);
+    mins = min(mins, vals[i]);
+    if (vals[i] > threshold+.5 && flag==0){
       steps=steps+1;
       flag=1;
-      //printf("a step!\n");
     }
-    if (z_vals[i] < threshold-.5 && flag==1){
+    if (vals[i] < threshold-.5 && flag==1){
       flag=0;
     }
     vTaskDelay(50 / portTICK_RATE_MS);
   }
-  //avgs[0] = (maxs[0]+mins[0])/2;
-  //avgs[1] = (maxs[1]+mins[1])/2;
-  avgs[2] = (maxs[2]+mins[2])/2;
+  avgs = (maxs+mins)/2;
   
-  threshold = avgs[2];
+  threshold = avgs;
 
 
 }
@@ -217,7 +210,39 @@ static void count_steps() {
 static void calibrate_ped() {
   printf("Calibrating, please walk around.\n");
   for (int i=0;i<5;i++){
-    count_steps();
+    double maxs[] = {-100, -100, -100};
+    double mins[] = {100, 100, 100};
+    for (int i=0;i<20;i++){
+      x_vals[i] = read16(ADXL343_REG_DATAX0) * ADXL343_MG2G_MULTIPLIER * SENSORS_GRAVITY_STANDARD;
+      y_vals[i] = read16(ADXL343_REG_DATAY0) * ADXL343_MG2G_MULTIPLIER * SENSORS_GRAVITY_STANDARD;
+      z_vals[i] = read16(ADXL343_REG_DATAZ0) * ADXL343_MG2G_MULTIPLIER * SENSORS_GRAVITY_STANDARD;
+      maxs[0] = max(maxs[0], x_vals[i]);
+      maxs[1] = max(maxs[1], y_vals[i]);
+      maxs[2] = max(maxs[2], z_vals[i]);
+      mins[0] = min(mins[0], x_vals[i]);
+      mins[1] = min(mins[1], y_vals[i]);
+      mins[2] = min(mins[2], z_vals[i]);
+      if (z_vals[i] > threshold+.5 && flag==0){
+        steps=steps+1;
+        flag=1;
+        //printf("a step!\n");
+      }
+      if (z_vals[i] < threshold-.5 && flag==1){
+        flag=0;
+      }
+      vTaskDelay(50 / portTICK_RATE_MS);
+    }
+    float range[] = {0,-1};
+    for (int j=0; j<3; j++){
+      float range0 = maxs[j]-mins[j];
+      if (range0 > range[0]){
+        range[0] = range0;
+        range[1] = j;
+      }
+    }
+    axis = range[1];
+
+    threshold = (maxs[axis]+mins[axis])/2;
   }
   steps=0, flag=0;
   printf("Finished calibration, beginning step counter.\n");
@@ -227,6 +252,13 @@ static void calibrate_ped() {
 static void step_counter() {
   printf("\n>> Polling ADAXL343\n");
   calibrate_ped();
+  if (axis == 0){
+    reg = ADXL343_REG_DATAX0;
+  }else if (axis == 1){
+    reg = ADXL343_REG_DATAY0;
+  }else if (axis == 2){
+    reg = ADXL343_REG_DATAZ0;
+  }
   while (1) {
     // Continuously updating steps variable
     count_steps();
