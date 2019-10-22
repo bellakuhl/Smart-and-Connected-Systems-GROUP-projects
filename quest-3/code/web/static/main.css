@@ -314,10 +314,13 @@ button {
     border-radius: 20px;
 }
 
-#triggerAlert {
+#triggerAlert.on {
     background-color: #B35952;
-    cursor: pointer;
     color: white;
+}
+
+#triggerAlert {
+    cursor: pointer;
 }
 
 #triggerAlert:hover {
