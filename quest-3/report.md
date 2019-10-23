@@ -5,7 +5,7 @@ Authors: Joseph Rossi, Isabelle Kuhl, Laura Reeve
 
 ## Summary
 
-In this quest, we created a fitness tracker that allows the user to track their steps, body temperature, and phone battery. The user can also be alerted; a blue LED blinks to remind the user to drink water and a red LED blinks to locate the device. The data collected is displayed on a web server hosted on a DDNS, allowing the user's friends and family to view the fitness metrics.
+In this quest, we created a fitness tracker that allows the user to track their steps, body temperature, and phone battery. The user can also be alerted; a blue LED blinks to remind the user to drink water and a red LED blinks to locate the device. The data collected is displayed on a web server hosted the Raspberry Pi. The website is accessible through a public URL made possible via DDNS, allowing the user's friends and family to view the fitness metrics.
 
 
 ## Evaluation Criteria
@@ -38,10 +38,54 @@ For the alert system, we have two different alerts that the user can implement. 
 
 ### Software
 
+The web server is written for NodeJS. It uses ExpressJS and Socket.IO to implenet a web app that receives biometric data through a websocket and can send commands to the wearable via an HTTP API. The firmware settings can be updated via a UDP message, after being received by the web server through an HTTP request from the web app.
+
+##### Network Configuration
+
+In the router settings, the Raspberry Pi and ESP32 are assigned static IP addresses so the IPs can be hard coded in the firmware and software. Additionally, the router is configured to route any traffic coming in on port 80 to the Pi's webserver on port 8000. Finally, we configured the router to update a DDNS service with a domain Joe has registered with Namecheap which allows users to access the webpage via the URL: http://ec444group15.josephrossi.us
+
+#### Receiving Biometric Data
+
+Every 2 seconds, the firmware reads the sensors and sends a UDP datagram to the Pi's IP and port listening for UDP traffic. The message sent is a JSON string in the following format:
+
+```
+{
+    "battery_volts": <battery>,
+    "temperature_degc": <temp>,
+    "steps": <steps>,
+    "alert_period_seconds": <step>
+}
+```
+
+Message data is then emitted through a websocket to the web client.
+
+<center><img src="./images/biometrics_flow.png" width="80%" /></center>
+
+#### Updating Settings
+
+From the webpage, the viewer can toggle different wearable settings. For example, you can turn on and off reporting the different sensor valus, update the drink water alert period, or turn on and off "Find My Device". Here is the data flow for updating wearable settings:
+
+<center><img src="./images/update_settings.png" width="80%" /></center>
+
+To summarize the diagram:
+
+* The firmware listens for UDP messages on port 8080.
+* The web server receives and HTTP request from the webpage.
+* The server then sends a datagram to the wearable (static IP) port 8080 with the desired settings.
+
+To avoid having to parse a JSON message on the firmware, the settings call expects a binary message to come through
+that matches the `WearableSettings_t` struct defined in [wearable.h](./code/firmware/main/wearable.h#L=38)
+
+#### Libraries and Frameworks
+
+- [NodeJS](https://nodejs.org/en/)
+- [Express](https://expressjs.com/)
+- [Socket.IO](https://socket.io/)
+- [Smoothie Charts](http://smoothiecharts.org/)
+- [Axios](https://github.com/axios/axios)
+
 ## Sketches and Photos
 
-<center><img src="./images/example.png" width="70%" /></center>  
-<center> </center>
 
 
 ## Supporting Artifacts
