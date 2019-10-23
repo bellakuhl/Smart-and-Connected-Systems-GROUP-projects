@@ -10,7 +10,7 @@ const io        = require("socket.io");
 const UDP_PORT  = 8080;
 const UDP_HOST  = "192.168.1.108";
 
-const WEARABLE_IP = "192.168.1.102"; 
+const WEARABLE_IP = "192.168.1.102";
 const WEARABLE_PORT = 8080;
 const WEBSERVER_PORT = 8000;
 
@@ -48,12 +48,13 @@ function serialize_data(settings) {
 const wearableUpdateSettings = function (data) {
     udp_socket.send(serialize_data(data), WEARABLE_PORT, WEARABLE_IP, function(error) {
         if (error) { console.error("Error sending message!"); }
+        websocket.emit("settings", JSON.stringify(WEARABLE_SETTINGS));
     });
 };
 
 udp_socket.on("message", function (message, remote) {
     try {
-        const msg = JSON.parse(message); 
+        const msg = JSON.parse(message);
         websocket.emit("data", msg);
     } catch(e) {
         console.error("Error parsing message: " + e);
@@ -157,11 +158,10 @@ function genMessage() {
 
 function startSimulation() {
     setTimeout(function () {
-        genMessage(); 
+        genMessage();
         startSimulation();
     }, 300);
 }
 
 //startSimulation();
 server.listen(WEBSERVER_PORT);
-

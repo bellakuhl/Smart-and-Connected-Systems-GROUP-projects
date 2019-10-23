@@ -32,7 +32,7 @@
     }
 
     function setSensorState(sensorName, enabled) {
-        var promise; 
+        var promise;
         if (enabled) {
             promise = axios.post("/sensor/" + sensorName + "/enable");
         }
@@ -73,7 +73,7 @@
             var selector = "#" + key + "-canvas";
             var el = document.querySelector(selector);
             var chartOptions = options[i];
-            chartOptions.responsive = true; 
+            chartOptions.responsive = true;
             chartOptions.interpolation= "linear";
             chartOptions.tooltip= true;
             chartOptions.timestampFormatter= SmoothieChart.timeFormatter
@@ -106,13 +106,13 @@
         var keys = ["temperature", "step", "battery"];
         keys.forEach(function (key) {
             var el = document.querySelector("#" + key + "-enable");
-            var enabled = !!SETTINGS[key + "_sensor_enabled"]; 
+            var enabled = !!SETTINGS[key + "_sensor_enabled"];
             if (enabled) {
-                el.classList.add("on"); 
+                el.classList.add("on");
                 el.textContent = "On";
             }
             else {
-                el.classList.remove("on"); 
+                el.classList.remove("on");
                 el.textContent = "Off";
             }
         });
@@ -138,10 +138,17 @@
         socket.on("data", function (data) {
             updateCharts(data);
         });
+
+        socket.on("settings", function (data) {
+            try {
+                SETTINGS = JSON.parse(data);
+                updateActions();
+            } catch(e) {}
+        });
     }
 
     function chart_enable_clicked(event) {
-        var sensor = event.target.id.split("-")[0]; 
+        var sensor = event.target.id.split("-")[0];
         var state = !!SETTINGS[sensor + "_sensor_enabled"];
         setSensorState(sensor, !state);
     }
@@ -153,7 +160,7 @@
             setAlertPeriodSeconds(value);
         }
     }
-    
+
     function init() {
         var alertElements = getAlertElements();
         document.querySelectorAll(".chart-wrapper button").forEach(function (btn) {
@@ -164,7 +171,7 @@
         alertElements.trigger.addEventListener("click", triggerAlert);
 
         getSettings().then(function (response) { SETTINGS = response.data;
-            initCharts(); 
+            initCharts();
             updateActions();
             setupSocket();
             setLoading(false);
@@ -173,4 +180,3 @@
 
     document.addEventListener("DOMContentLoaded", init);
 }();
-
