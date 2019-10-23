@@ -18,7 +18,6 @@ uint32_t seconds = 0;
 
 static void water_alert_task(){
     while(1) {
-        printf("Flash water\n");
 	    // Flash for five seconds
 	    gpio_set_level(GPIO_2, 1); // Flash on
 	    vTaskDelay(seconds*1000 / portTICK_PERIOD_MS);
@@ -50,7 +49,6 @@ void wearable_schedule_water_alert(uint32_t period_sec)
 
 void find_device_task() {
     while (1){ // flash until turned off
-        printf("Flash find\n");
     	gpio_set_level(GPIO_1, 1);
         vTaskDelay(1000/portTICK_PERIOD_MS);
     	gpio_set_level(GPIO_1, 0);

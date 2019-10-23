@@ -195,17 +195,17 @@ static void count_steps() {
     vals[i] = read16(reg) * ADXL343_MG2G_MULTIPLIER * SENSORS_GRAVITY_STANDARD;
     maxs = max(maxs, vals[i]);
     mins = min(mins, vals[i]);
-    if (vals[i] > threshold+.5 && flag==0){
+    if (vals[i] > threshold+1.5 && flag==0){
       steps=steps+1;
       flag=1;
     }
-    if (vals[i] < threshold-.5 && flag==1){
+    if (vals[i] < threshold-1.5 && flag==1){
       flag=0;
     }
     vTaskDelay(50 / portTICK_RATE_MS);
   }
-  avgs = (maxs+mins)/2;
 
+  avgs = (maxs+mins)/2;
   threshold = avgs;
 
 
@@ -215,7 +215,7 @@ static void count_steps() {
 // Calibrate pedometer in first 5 seconds of walking
 static void calibrate_ped() {
   printf("Calibrating, please walk around.\n");
-  for (int i=0;i<5;i++){
+  for (int k=0;k<5;k++){
     double maxs[] = {-100, -100, -100};
     double mins[] = {100, 100, 100};
     for (int i=0;i<20;i++){
@@ -242,6 +242,9 @@ static void calibrate_ped() {
     axis = range[1];
 
     threshold = (maxs[axis]+mins[axis])/2;
+    if (k == 4 && range[0] < 1.0) {
+        k = 0;
+    }
   }
 
   printf("Finished calibration, beginning step counter.\n");

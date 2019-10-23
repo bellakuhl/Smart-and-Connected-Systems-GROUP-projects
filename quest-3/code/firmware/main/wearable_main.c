@@ -158,14 +158,8 @@ static void update_settings(WearableSettings_t *new_settings)
 {
     // Apply the settings
     memcpy(&settings, new_settings, sizeof(WearableSettings_t));
-
-    printf("Schedule alert\n");
     wearable_schedule_water_alert(settings.alert_period_sec);
-    printf("Schedule alert done\n");
-
-    printf("Find Device\n");
     wearable_find_device(settings.find_device);
-    printf("Find Device done\n");
 }
 
 static void wearable_init()
