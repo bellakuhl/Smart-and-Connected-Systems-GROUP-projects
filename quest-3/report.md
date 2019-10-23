@@ -26,7 +26,7 @@ Remote access to turn off features (i.e., only measure steps but no temperature)
 
 Below is a diagram of the wiring setup for the fitness tracker. Each sensor uses 3.3v from the ESP32 and the battery monitor and thermistor use the ADC pins. The LED are connected using 220 ohm resistors to GPIO pins. Finally, the accelerometer uses SDA and SCL pins to communicate over I2C.
 
-![wiring diagram]()
+<center><img src="./images/wiring_diagram.png" width="80%" /></center>
 
 ### Firmware
 
