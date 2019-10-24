@@ -5,7 +5,7 @@ Authors: Joseph Rossi, Isabelle Kuhl, Laura Reeve
 
 ## Summary
 
-In this quest, we created a fitness tracker that allows the user to track their steps, body temperature, and phone battery. The user can also be alerted; a blue LED blinks to remind the user to drink water and a red LED blinks to locate the device. The data collected is displayed on a web server hosted the Raspberry Pi. The website is accessible through a public URL made possible via DDNS, allowing the user's friends and family to view the fitness metrics.
+In this quest, we created a fitness tracker that allows the user to track their steps, body temperature, and phone battery. The user can also be alerted; a blue LED blinks to remind the user to drink water and a red LED blinks to locate the device. The data collected is displayed on a web server hosted by the Raspberry Pi. The website is accessible through a public URL made possible via DDNS, allowing the user's friends and family to view the fitness metrics.
 
 
 ## Evaluation Criteria
@@ -32,7 +32,7 @@ Below is a diagram of the wiring setup for the fitness tracker. Each sensor uses
 
 The firmware was broken up into parts for the temperature, battery level, step counter, and alert system. The temperature and battery level files are based on the ADC example code. For the battery monitor, we measure the voltage across a voltage divider consisting of two 10k resistors in series using ADC. For the thermistor, we again use a voltage divider to measure the voltage drop across the thermistor, then use this to calculate the resistance. From there, we calculate the temperature using the values given on the spec sheets for the NTC thermistor and convert those values from Kelvin to Celsius.
 
-For the step counter, we used the ADXL343 Accelerometer and an i2c master-slave configuration to read in the acceleration in the x, y, and z directions. From here, we used the acceleration on the z-axis to measure steps. We do this because the vertical direction is where you get the greatest fluctuations when a person is walking. We have a threshold variable that that is updated every second that takes the mean of the max and min values from that second. When the z acceleration goes above that threshold, it is seen as a 'step'.
+For the step counter, we used the ADXL343 Accelerometer and an i2c master-slave configuration to read in the acceleration along the x, y, and z axes. From here, we have a 5 second calibration period where we check what the orientation of the device is by polling each axis and seeing where we have the greatest range in values -- this way, if a person wears it in an odd way, it will still calculate steps. We have a threshold variable that that is updated every second that takes the mean of the max and min values from that second. We also have a small buffer for above and below the threshold to account for noisy data and minor vibrations of the sensor. When the z acceleration goes above that threshold, it is seen as a 'step'.
 
 For the alert system, we have two different alerts that the user can implement. The first alert is a scheduled reminder to drink water. This is scheduled to flash the blue LED on a regular interval (every x seconds). The second alert is an immediate on/off switch for the user to find the device. When on, it continuously flashes the red LED until the user switches it to off.
 
@@ -63,7 +63,7 @@ Message data is then emitted through a websocket to the web client.
 
 #### Updating Settings
 
-From the webpage, the viewer can toggle different wearable settings. For example, you can turn on and off reporting the different sensor valus, update the drink water alert period, or turn on and off "Find My Device". Here is the data flow for updating wearable settings:
+From the webpage, the viewer can toggle different wearable settings. For example, you can turn on and off reporting the different sensor values, update the drink water alert period, or turn on and off "Find My Device". Here is the data flow for updating wearable settings:
 
 <center><img src="./images/update_settings.png" width="80%" /></center>
 
@@ -86,7 +86,8 @@ that matches the `WearableSettings_t` struct defined in [wearable.h](./code/firm
 
 ## Sketches and Photos
 
-
+Here is a photo of our breadboard with the various sensors connected:
+<center><img src="./images/q3_setup.JPG" width="80%" /></center>
 
 ## Supporting Artifacts
 
@@ -115,7 +116,7 @@ A final method of reducing power is to implement a sleep mode that stops collect
 
 ## Reminders
 
-- Video recording in landscape not to exceed 90s
+- Video recording in landscape not to exceed 120s
 - Each team member appears in video
 - Make sure video permission is set accessible to the instructors
 - Repo is private
