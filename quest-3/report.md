@@ -111,6 +111,8 @@ A final method of reducing power is to implement a sleep mode that stops collect
 
 * We referenced the [datasheet](https://cdn-learn.adafruit.com/assets/assets/000/070/556/original/adxl343.pdf?1549287964) for the accelerometer for connecting it and interpreting the values.
 
+* We referenced this adafruit [paper](https://cdn-learn.adafruit.com/assets/assets/000/070/557/original/pedometer-design-3-axis-digital-acceler.pdf?1549288142) to bring up our pedometer to calibrate orientation and calculate steps.
+
 * We used DFRobot's [tutorial](https://wiki.dfrobot.com/How_to_Use_a_Three-Axis_Accelerometer_for_Tilt_Sensing) for the equations to translate the x, y, z values from the sensor into pitch, roll, and yaw.
 -----
 
