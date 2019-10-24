@@ -1,0 +1,32 @@
+menu "Wearable Network Config"
+    config WIFI_SSID
+        string "WiFi SSID"
+        default "Group_15"
+        help
+            SSID (network name) to connect to.
+
+    config WIFI_PASSPHRASE
+        string "WiFi Passphrase"
+        default "smart-systems"
+        help
+            Wifi passphrase
+
+    config PI_IP_ADDR
+        string "PI IP Addr"
+        default "192.168.1.108"
+        help
+            The IP address of the client running the nodejs webserver
+    
+    config PI_PORT
+        int "PI Port"
+        default 8080
+        help
+            Port to send UDP messages to.
+
+    config UDP_LISTEN_PORT
+        int "UDP Listen Port"
+        default 8080
+        help
+            The local port to listen for UDP messages on.
+endmenu
+

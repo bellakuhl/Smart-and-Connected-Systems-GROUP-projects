@@ -22,6 +22,19 @@ recording out to a CSV that can be rendered statically on the webpage.
 sensor every 2 seconds and writes the reading to the console. The code reading the analog
 voltage converts volts into meters.
 
+**Perodic reporting of IR range in m** - The firmware reads and reports the IR range
+sensor every 2 seconds and writes the reading to the console. The code reading the analog
+voltage converts volts into meters based on information from the datasheet  for the sensor.
+
+**Perodic reporting of temperature in C** - The firmware reads the voltage of the thermistor
+circuit every 2 seconds and converts the voltage into celcius based on thermistors 
+characteristics described in the datasheet.
+
+**Results Graphed at Host** - The web server, running on port 8080, graphs the data from
+
+**Results graphed continuouly based on reporting period** - The webpage receives new
+data every 2 seconds via a websocket and updates the graphs. It keeps a 1 minute window of
+data points for each sensor.
 
 **Perodic reporting of IR range in m** - The firmware reads and reports the IR range
 sensor every 2 seconds and writes the reading to the console. The code reading the analog
@@ -115,6 +128,37 @@ Finally, When the web server starts up, it starts recording sensor data to a fil
 named `sensors.csv`. The webpage can then render this data by simply adding the query
 string `?csv=sensors.csv` to the URL.  Live streaming  data is ignored when rendering 
 data from a file.
+
+
+## Investigative Question
+
+
+### Ultrasonic Sensor
+
+Based on the [datasheet][1] the ultrasonic sensor will update its readings every 
+50 milliseconds, so should not be sampled faster than 20 Hz.
+
+
+### Infrared Distance Sensor
+
+The timing chart in the [datasheet][2] (page 4) shows that the distance 
+sensor has a measurement period of approximately 38.3ms ± 9.6ms, so the 
+maximum  sampling rate should be between 21Hz and 34Hz.
+
+Additionally, the timing chart shows the first measurement as being unusable. 
+The initial reading should be delayed 43ms ± 9.6ms after being powered on.
+
+
+### Battery & Thermistor
+
+The battery and thermistor readings are both limited by the sample rate
+of the ESP32's ADCs. From page 23 of the [ESP32 datasheet][3], The maximum 
+sampling rate of the inputs on the RTC Controller are 200 ksps, so their values should not
+be sampled greater than the theoretical  rate of 200kHz.
+
+[1]: https://www.maxbotix.com/documents/LV-MaxSonar-EZ_Datasheet.pdf
+[2]: https://www.sparkfun.com/datasheets/Sensors/Infrared/gp2y0a02yk_e.pdf
+[3]: https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf#page=30
 
 
 ## Investigative Question
