@@ -37,7 +37,7 @@ be: `192.168.1.108`
 * HTTP Port: 8000
 * Websocket Port: 8000
 
-These settings can be changed in [servers.js](./server.js)
+These settings can be changed in [server.js](./web/server.js)
 
 ### Deploy
 
