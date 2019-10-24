@@ -19,18 +19,34 @@ idf.py flash
 
 ## NodeJS Server
 
-All of the code needed to run the webserver is in the `server` directory.
 
-**Setup**
+### Setup
 
-* Make sure NodeJS is installed on your machine
-* From the `server` directory: `npm install`
+Prerequisite: NodeJS v10.13
 
+1) `cd web`
+2) `npm install`
+3) `node server.js`
 
-**Running**
+### Network Setup
 
-* Make sure your ESP32 is flashed with the code in `firmware` and
-   connected to your laptop via USB.
-* From the `server` folder: `node index.js <dev/port>` where `<dev/port>` is
-  the device identifier for the ESP serial monitor (i.e. COM4, /dev/ttyUSB0, etc)
-* Open in a browser: http://localhost:8080
+If running on the Raspberry Pi, the your IP will be statically assigned to
+be: `192.168.1.108`
+
+* UDP Port: 8080
+* HTTP Port: 8000
+* Websocket Port: 8000
+
+These settings can be changed in [servers.js](./server.js)
+
+### Deploy
+
+The Raspberry Pi is setup to deploy via git. To update to the latest
+code:
+
+0) Push your latest changes and make sure you are connected to the router.
+1) `ssh pi@192.168.1.108`
+2) `cd Team15-Kuhl-Reeve-Rossi`
+3) `git pull`
+4) Restart the webserver: `sudo systemctl restart ec444-q3.service`
+
