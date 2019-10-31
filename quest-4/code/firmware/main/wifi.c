@@ -68,10 +68,12 @@ void wifi_connect(uint8_t *ssid, size_t ssid_size, uint8_t *passphrase, size_t p
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-    wifi_config_t wifi_config;
-    memcpy(wifi_config.sta.ssid, ssid, ssid_size);
-    memcpy(wifi_config.sta.password, passphrase, passphrase_size);
-
+    wifi_config_t wifi_config = {
+        .sta = {
+            .ssid = "Group_15",
+            .password = "smart-systems"
+        }
+    };
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));

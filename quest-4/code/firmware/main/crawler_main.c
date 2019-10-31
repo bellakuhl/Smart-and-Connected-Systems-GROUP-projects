@@ -47,12 +47,6 @@ typedef struct {
 
 static void crawler_send_msg(const char *msg)
 {
-    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-    struct sockaddr_in destAddr;
-    destAddr.sin_addr.s_addr = INADDR_BROADCAST;
-    destAddr.sin_family = AF_INET;
-    destAddr.sin_port = htons(8080);
-
     int err = sendto(
         sock,
         msg,
@@ -62,12 +56,11 @@ static void crawler_send_msg(const char *msg)
         sizeof(destAddr)
     );
 
-    if (err) {
+    if (err < 0) {
         // Dont call log again so we don't end up
         // in an infinite cyclical call.
-        printf("Error sending message.");
+        printf("Error sending message: %d\n", err);
     }
-
 }
 
 static void crawler_log(const char *format, ...)
@@ -89,7 +82,10 @@ static void crawler_cmd_recv()
     memset((char *) &me, 0, sizeof(me));
     me.sin_family = AF_INET;
     me.sin_port = htons(CMD_RECV_PORT);
-    me.sin_addr.s_addr = inet_addr(wifi_get_ip_addr());
+    me.sin_addr.s_addr = inet_addr("0.0.0.0");
+
+    if (bind(sock, (struct sockaddr*) &me, sizeof(me))==-1)
+        printf("Bind failed\n");
 
     uint8_t rx_buffer[RX_BUFFER_SIZE];
 
@@ -106,6 +102,7 @@ static void crawler_cmd_recv()
             (struct sockaddr *)&fromAddr,
             &socklen
         );
+        printf("Received\n");
 
         if (len < 0) {
             crawler_log("Failed to recv from socket: %d", errno);
@@ -117,6 +114,7 @@ static void crawler_cmd_recv()
                 crawler_log("Ignoring unknown message size: %d\n", len);
                 continue;
             }
+            printf("Len: %d\n", len);
 
             CrawlerCmd_t *data = (CrawlerCmd_t *)rx_buffer;
             crawler_log("Received Message - Cmd: %d, value %d\n", data->cmd, data->value);
@@ -177,7 +175,15 @@ void app_main()
     wifi_init();
     wifi_connect((uint8_t *)"Group_15", 9, (uint8_t *)"smart-systems", 14);
     wifi_wait_for_ip();
-    crawler_log("Connected");
+    crawler_log("Connected\n");
+
+    char addr_str[128];
+    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+    struct sockaddr_in destAddr;
+    destAddr.sin_addr.s_addr = inet_addr("192.168.1.109");
+    destAddr.sin_family = AF_INET;
+    destAddr.sin_port = htons(8080);
+    inet_ntoa_r(destAddr.sin_addr, addr_str, sizeof(char)*128 - 1);
 
     crawler_control_init();
     crawler_calibrate();

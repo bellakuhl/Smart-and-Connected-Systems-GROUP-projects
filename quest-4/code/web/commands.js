@@ -3,12 +3,12 @@ const http      = require("http");
 const io        = require("socket.io");
 const express   = require("express");
 
-const CRAWLER_IP = "192.168.1.102";
+const CRAWLER_IP = "192.168.1.134";
 const CRAWLER_PORT = 8080;
 
 const UDP_PORT  = 8080;
 //const UDP_HOST  = "192.168.1.108";
-const UDP_HOST = "192.168.1.197";
+const UDP_HOST = "0.0.0.0";
 
 const app = express();
 const server =  http.Server(app);
@@ -25,30 +25,29 @@ const PWM_NEUTRAL = 1500;
 const PWM_MAX = 2400;
 
 function serialize_data(data) {
-    var data = new Uint8Array(2);
-
-    data[0] = data.command;
-    data[1] = data.value >> 0 & 0xFF;
-    data[2] = data.value >> 4 & 0xFF;
-
-    return data;
+    var bits = new Uint8Array(3);
+    bits[0] = data.command;
+    bits[1] = data.value >> 0 & 0xFF;
+    bits[2] = data.value >> 8 & 0xFF;
+    return bits;
 }
 
 function send_command(command, value) {
     return new Promise(function (resolve, reject) {
-        var data = {command: type, value: value};
+        var data = {command: command, value: value};
         udp_socket.send(serialize_data(data), CRAWLER_PORT, CRAWLER_IP, function(error) {
             if (error) {
                 reject("Error setting value.");
             }
-            else { resolve(value);
+            else { 
+                resolve(value);
             }
         });
     });
 }
 
 udp_socket.on("message", function (message, remote) {
-    websocket.emit("message", message);
+    websocket.emit("message", message.toString());
 });
 udp_socket.bind(UDP_PORT, UDP_HOST);
 
@@ -69,7 +68,7 @@ app.post("/control", function (request, response) {
         send_command(CMD_ESC, value).then(function (value) {
             response.status(200).send("Set ESC PWM to " + value);
         }).catch(function (msg) {
-            response.status(500).send(msg);
+            response.status(500).send("Error setting esc");
         });
     }
     else if (param == "steering") {

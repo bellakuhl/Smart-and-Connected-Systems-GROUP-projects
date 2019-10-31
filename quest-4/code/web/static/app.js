@@ -66,9 +66,9 @@
         document.querySelector("#escBackward").addEventListener("click", increment.bind(null, ESC_CONTROL));
         document.querySelector("#escStop").addEventListener("click", reset.bind(null, ESC_CONTROL));
 
-        document.querySelector("#steerForward").addEventListener("click", decrement.bind(null, STEER_CONTROL));
-        document.querySelector("#steerBackward").addEventListener("click", increment.bind(null, STEER_CONTROL));
-        document.querySelector("#steerCenter").addEventListener("click", reset.bind(null, STEER_CONTROL));
+        document.querySelector("#turnLeft").addEventListener("click", increment.bind(null, STEER_CONTROL));
+        document.querySelector("#turnRight").addEventListener("click", decrement.bind(null, STEER_CONTROL));
+        document.querySelector("#turnCenter").addEventListener("click", reset.bind(null, STEER_CONTROL));
 
         document.querySelector("#startAuto").addEventListener("click", function () {
             axios.post("/start").then(function (resp) {
