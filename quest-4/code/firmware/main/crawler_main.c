@@ -28,11 +28,18 @@
 
 #define CMD_RECV_PORT 8080
 
-const uint8_t CMD_ESC = 0;
-const uint8_t CMD_STEER = 1;
+enum CrawlerCommands {
+    CMD_ESC = 0,
+    CMD_STEER,
+    CMD_START_AUTO,
+    CMD_STOP_AUTO
+};
 
 #pragma pack(push, 1)
 typedef struct {
+    // This should be one of the CrawlerCommand values, but
+    // since it's a message received via UDP, I want to
+    // specifcy a predictable size.
     uint8_t cmd;
     uint16_t value;
 } CrawlerCmd_t;
@@ -113,11 +120,21 @@ static void crawler_cmd_recv()
 
             CrawlerCmd_t *data = (CrawlerCmd_t *)rx_buffer;
             crawler_log("Received Message - Cmd: %d, value %d\n", data->cmd, data->value);
-            if (data->cmd == CMD_ESC) {
-                mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER, MCPWM_OPR_A, data->value);
-            }
-            else {
-                mcpwm_set_duty_in_us(STEERING_PWM_UNIT, STEERING_PWM_TIMER, MCPWM_OPR_A, data->value);
+            switch(data->cmd) {
+                case CMD_ESC:
+                    mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER, MCPWM_OPR_A, data->value);
+                    break;
+                case CMD_STEER:
+                    mcpwm_set_duty_in_us(STEERING_PWM_UNIT, STEERING_PWM_TIMER, MCPWM_OPR_A, data->value);
+                    break;
+                case CMD_START_AUTO:
+                    // TODO: Start automatic driving task
+                    break;
+                case CMD_STOP_AUTO:
+                    // TODO: Stop automatic driving task
+                    break;
+                default:
+                    crawler_log("Unknown command type: %d", data->cmd);
             }
         }
     }

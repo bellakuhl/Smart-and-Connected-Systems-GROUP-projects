@@ -69,6 +69,22 @@
         document.querySelector("#steerForward").addEventListener("click", decrement.bind(null, STEER_CONTROL));
         document.querySelector("#steerBackward").addEventListener("click", increment.bind(null, STEER_CONTROL));
         document.querySelector("#steerCenter").addEventListener("click", reset.bind(null, STEER_CONTROL));
+
+        document.querySelector("#startAuto").addEventListener("click", function () {
+            axios.post("/start").then(function (resp) {
+                logMessage(response.data);
+            }).catch(function (xhr) {
+                logMessage(xhr.response.data);
+            });
+        });
+
+        document.querySelector("#stopAuto").addEventListener("click", function () {
+            axios.post("/stop").then(function (resp) {
+                logMessage(response.data);
+            }).catch(function (xhr) {
+                logMessage(xhr.response.data);
+            });
+        });
         setup_socket();
     });
 }());

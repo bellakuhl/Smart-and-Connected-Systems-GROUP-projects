@@ -17,6 +17,8 @@ const udp_socket = dgram.createSocket("udp4");
 
 const CMD_ESC = 0;
 const CMD_STEERING = 1;
+const CMD_START_AUTO = 2;
+const CMD_STOP_AUTO = 3;
 
 const PWM_MIN = 900;
 const PWM_NEUTRAL = 1500;
@@ -32,31 +34,14 @@ function serialize_data(data) {
     return data;
 }
 
-function esc_update(value) {
+function send_command(command, value) {
     return new Promise(function (resolve, reject) {
-        var data = {command: CMD_ESC, value: value};
+        var data = {command: type, value: value};
         udp_socket.send(serialize_data(data), CRAWLER_PORT, CRAWLER_IP, function(error) {
             if (error) {
-                reject("Error setting ESC value");
+                reject("Error setting value.");
             }
-            else {
-                resolve(value);
-            }
-        });
-    });
-}
-
-function steering_update(value) {
-    return new Promise(function (resolve, reject) {
-        var data = {command: CMD_STEERING, value: value};
-        udp_socket.send(serialize_data(data), CRAWLER_PORT, CRAWLER_IP, function(error) {
-            if (error) {
-                console.log("Error sending", error);
-                reject("Error setting Steering value");
-            }
-            else {
-                console.log("Success sending");
-                resolve(value);
+            else { resolve(value);
             }
         });
     });
@@ -81,14 +66,14 @@ app.post("/control", function (request, response) {
     }
 
     if (param == "esc") {
-        esc_update(value).then(function (value) {
+        send_command(CMD_ESC, value).then(function (value) {
             response.status(200).send("Set ESC PWM to " + value);
         }).catch(function (msg) {
             response.status(500).send(msg);
         });
     }
     else if (param == "steering") {
-        steering_update(value).then(function (value) {
+        send_command(CMD_STEERING, value).then(function (value) {
             response.status(200).send("Set Steering PWM to " + value);
         }).catch(function (msg) {
             response.status(500).send(msg);
@@ -97,6 +82,22 @@ app.post("/control", function (request, response) {
     else {
         response.status(422).send("Invalid control param.");
     }
+});
+
+app.post("/start", function (request) {
+    send_command(CMD_START_AUTO, 0).then(function (value) {
+        response.status(200).send("Started Autonomous Routine");
+    }).catch(function (err) {
+        response.status(500).send("Error Starting Autonomous Routine");
+    });
+});
+
+app.post("/stop", function (request) {
+    send_command(CMD_STOP_AUTO, 0).then(function (value) {
+        response.status(200).send("Stop command sent.");
+    }).catch(function (err) {
+        response.status(500).send("Error sending stop command.");
+    });
 });
 
 app.get("/", function (request, response) {
