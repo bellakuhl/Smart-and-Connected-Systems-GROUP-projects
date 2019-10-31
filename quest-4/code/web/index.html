@@ -1,0 +1,52 @@
+
+<!-- Joseph Rossi -->
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>EC44 Quest 4</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#fafafa">
+        <style>
+            body {margin: 0; body: 0}
+            #controls {
+                width: 100vw;
+                height: 10vh;
+                text-align: center;
+            }
+
+            button {
+                border: none;
+                background-color: #efefef;
+                padding: 0.25em 0.5em;
+                font-size: 1.2em;
+
+            }
+
+            #log {
+                margin: auto;
+                width: 80vw;
+                height: 90vh;
+                border: 1px solid #9a9a9a;
+                padding: 1em;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="controls">
+            <button id="escForward" type="button">Esc Up</button>
+            <button id="escBackward" type="button">Esc Down</button>
+            <button id="escStop" type="button">Esc Stop</button>
+
+            <button id="steerForward" type="button">Steer Left</button>
+            <button id="steerBackward" type="button">Steer Right</button>
+            <button id="steerCenter" type="button">Steer Center</button>
+        </div>
+        <div id="log"></div>
+        <script src="/node_modules/socket.io-client/dist/socket.io.js"></script>
+        <script src="/node_modules/axios/dist/axios.min.js"></script>
+        <script src="/static/app.js"></script>
+    </body>
+</html>
+
