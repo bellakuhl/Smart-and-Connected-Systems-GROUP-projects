@@ -12,6 +12,7 @@
 
 #include "alphanumeric_display.h"
 #include "crawler.h"
+#include "pid_control.h"
 #include "pulse_counter.h"
 #include "wifi.h"
 
@@ -143,15 +144,31 @@ void crawler_speed_monitor()
 
     int16_t last_pulse_count = 0;
     float speed = 0;
-    float period = 1000;
+    float period = 200;
+    int samples = 0;
+
     while(1)
     {
         int16_t pulse_count = pulsecounter_get_count();
         float revolutions = (float)(pulse_count - last_pulse_count)/6.0f;
         float dist = 3.14159 * DIAMETER_M * revolutions;
-        speed = dist/(period/1000.0f);
-        alphadisplay_write_float(speed);
-        last_pulse_count = pulse_count;
+
+        speed += dist/(period/1000.0f);
+        samples++;
+        if (samples == 5) {
+            samples = 0;
+            speed /= 5;
+
+            alphadisplay_write_float(speed);
+            last_pulse_count = pulse_count;
+
+            float adjustment = PID(speed);
+            float pwm_adjust = 200 * adjustment;
+            printf("Adjustment: %f\n", adjustment);
+            crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
+        }
+
+
         vTaskDelay(period/portTICK_PERIOD_MS);
     }
 }
@@ -166,7 +183,13 @@ void app_main()
     crawler_log("Connected\n");
 
     crawler_control_init();
-    crawler_calibrate();
+    //crawler_calibrate();
+    crawler_steering_set_value(PWM_NEUTRAL_US);
+    crawler_esc_set_value(PWM_NEUTRAL_US - 100);
+    vTaskDelay(2000/portTICK_PERIOD_MS);
+
+    PID_set_setpoint(0.3);
+    PID_init();
 
     xTaskCreate(crawler_cmd_recv, "crawler_cmd_recv", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);

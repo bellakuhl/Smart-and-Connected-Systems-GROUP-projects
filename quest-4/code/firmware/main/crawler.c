@@ -38,15 +38,31 @@ void crawler_calibrate()
     mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER, MCPWM_OPR_A, PWM_NEUTRAL_US); // reset the ESC to neutral (non-moving) value
 }
 
+static uint32_t esc_pwm_us = PWM_NEUTRAL_US;
+static uint32_t steer_pwm_us = PWM_NEUTRAL_US;
+
+uint32_t crawler_esc_get_value()
+{
+    return esc_pwm_us;
+}
+
 void crawler_esc_set_value(uint32_t pwm)
 {
+    esc_pwm_us = pwm;
     mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER,
-            MCPWM_OPR_A, pwm);
+            MCPWM_OPR_A, esc_pwm_us);
+    printf("Set ESC: %u\n", esc_pwm_us);
+}
+
+uint32_t crawler_steering_get_value()
+{
+    return steer_pwm_us;
 }
 
 void crawler_steering_set_value(uint32_t pwm)
 {
+    steer_pwm_us = pwm;
     mcpwm_set_duty_in_us(STEERING_PWM_UNIT, STEERING_PWM_TIMER,
-            MCPWM_OPR_A, pwm);
+            MCPWM_OPR_A, steer_pwm_us);
 }
 

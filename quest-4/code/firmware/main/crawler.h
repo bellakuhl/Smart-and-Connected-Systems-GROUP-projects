@@ -17,7 +17,11 @@
 
 void crawler_control_init();
 void crawler_calibrate();
+
+uint32_t crawler_esc_get_value();
 void crawler_esc_set_value(uint32_t pwm);
+
+uint32_t crawler_steering_get_value();
 void crawler_steering_set_value(uint32_t pwm);
 
 #endif
