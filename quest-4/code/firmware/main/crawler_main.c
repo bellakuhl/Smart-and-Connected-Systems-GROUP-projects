@@ -10,22 +10,12 @@
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
 
+#include "alphanumeric_display.h"
+#include "crawler.h"
+#include "pulse_counter.h"
 #include "wifi.h"
 
-#define STEERING_PWM_UNIT   MCPWM_UNIT_0
-#define STEERING_PWM_TIMER  MCPWM_TIMER_0
-#define STEERING_PWM_PIN    MCPWM0A
-#define STEERING_PWM_GPIO   GPIO_NUM_15
-
-#define ESC_PWM_UNIT   MCPWM_UNIT_0
-#define ESC_PWM_TIMER  MCPWM_TIMER_1
-#define ESC_PWM_PIN    MCPWM1A
-#define ESC_PWM_GPIO   GPIO_NUM_12
-
-#define PWM_LOW_US 900
-#define PWM_HIGH_US 2400
-#define PWM_NEUTRAL_US 1500
-
+#define DIAMETER_M 0.1778
 #define CMD_RECV_PORT 8080
 
 enum CrawlerCommands {
@@ -47,6 +37,14 @@ typedef struct {
 
 static void crawler_send_msg(const char *msg)
 {
+    char addr_str[128];
+    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+    struct sockaddr_in destAddr;
+    destAddr.sin_addr.s_addr = inet_addr("192.168.1.147");
+    destAddr.sin_family = AF_INET;
+    destAddr.sin_port = htons(8080);
+    inet_ntoa_r(destAddr.sin_addr, addr_str, sizeof(char)*128 - 1);
+
     int err = sendto(
         sock,
         msg,
@@ -138,56 +136,39 @@ static void crawler_cmd_recv()
     }
 }
 
-void crawler_control_init()
+void crawler_speed_monitor()
 {
-    mcpwm_config_t pwm_config;
-    pwm_config.frequency = 50;
-    pwm_config.cmpr_a = 0; pwm_config.cmpr_b = 0;
-    pwm_config.counter_mode = MCPWM_UP_COUNTER;
-    pwm_config.duty_mode = MCPWM_DUTY_MODE_0;
+    pulsecounter_init();
+    pulsecounter_start();
 
-    mcpwm_init(STEERING_PWM_UNIT, STEERING_PWM_TIMER, &pwm_config);
-    mcpwm_init(ESC_PWM_UNIT, ESC_PWM_TIMER, &pwm_config);
-
-    mcpwm_gpio_init(STEERING_PWM_UNIT, STEERING_PWM_PIN, STEERING_PWM_GPIO);
-    mcpwm_gpio_init(ESC_PWM_UNIT, ESC_PWM_PIN, ESC_PWM_GPIO);
-
-    vTaskDelay(500/portTICK_PERIOD_MS);
-}
-
-void crawler_calibrate()
-{
-    crawler_log("Calibrating...\n");
-    vTaskDelay(3000 / portTICK_PERIOD_MS);  // Give yourself time to turn on crawler
-    mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER, MCPWM_OPR_A, PWM_HIGH_US); // HIGH signal in microseconds
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER, MCPWM_OPR_A, PWM_LOW_US);  // LOW signal in microseconds
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER, MCPWM_OPR_A, PWM_NEUTRAL_US); // NEUTRAL signal in microseconds
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER, MCPWM_OPR_A, PWM_NEUTRAL_US); // reset the ESC to neutral (non-moving) value
-    crawler_log("Calibration finished.");
+    int16_t last_pulse_count = 0;
+    float speed = 0;
+    float period = 1000;
+    while(1)
+    {
+        int16_t pulse_count = pulsecounter_get_count();
+        float revolutions = (float)(pulse_count - last_pulse_count)/6.0f;
+        float dist = 3.14159 * DIAMETER_M * revolutions;
+        speed = dist/(period/1000.0f);
+        alphadisplay_write_float(speed);
+        last_pulse_count = pulse_count;
+        vTaskDelay(period/portTICK_PERIOD_MS);
+    }
 }
 
 
 void app_main()
 {
+    alphadisplay_init();
     wifi_init();
     wifi_connect((uint8_t *)"Group_15", 9, (uint8_t *)"smart-systems", 14);
     wifi_wait_for_ip();
     crawler_log("Connected\n");
 
-    char addr_str[128];
-    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-    struct sockaddr_in destAddr;
-    destAddr.sin_addr.s_addr = inet_addr("192.168.1.109");
-    destAddr.sin_family = AF_INET;
-    destAddr.sin_port = htons(8080);
-    inet_ntoa_r(destAddr.sin_addr, addr_str, sizeof(char)*128 - 1);
-
     crawler_control_init();
     crawler_calibrate();
 
     xTaskCreate(crawler_cmd_recv, "crawler_cmd_recv", 4096, NULL, configMAX_PRIORITIES-1, NULL);
+    xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
 }
 
