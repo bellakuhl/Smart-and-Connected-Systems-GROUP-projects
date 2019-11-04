@@ -145,7 +145,6 @@ void crawler_speed_monitor()
     int16_t last_pulse_count = 0;
     float speed = 0;
     float period = 200;
-    int samples = 0;
 
     while(1)
     {
@@ -155,21 +154,15 @@ void crawler_speed_monitor()
 
         speed += dist/(period/1000.0f);
         speed *= crawler_get_direction();
-        samples++;
-        if (samples == 5) {
-            samples = 0;
-            speed /= 5;
 
-            alphadisplay_write_float(speed);
-            last_pulse_count = pulse_count;
+        alphadisplay_write_float(speed);
+        last_pulse_count = pulse_count;
 
-            float adjustment = PID(speed);
-            float pwm_adjust = 200 * adjustment;
+        float adjustment = PID(speed);
+        float pwm_adjust = 200 * adjustment;
 
-            printf("Adjustment: %f\n", adjustment);
-            crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
-        }
-
+        printf("Adjustment: %f\n", adjustment);
+        crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
 
         vTaskDelay(period/portTICK_PERIOD_MS);
     }
