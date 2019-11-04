@@ -4,6 +4,7 @@ set(COMPONENT_SRCS
     "crawler_control.c"
     "pulse_counter.c"
     "pid_control.c"
+    "ultrasonic.c"
     "crawler_main.c")
 
 set(COMPONENT_ADD_INCLUDEDIRS ".")
