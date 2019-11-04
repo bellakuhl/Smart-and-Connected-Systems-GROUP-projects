@@ -1,7 +1,7 @@
 set(COMPONENT_SRCS 
     "wifi.c"
     "alphanumeric_display.c"
-    "crawler.c"
+    "crawler_control.c"
     "pulse_counter.c"
     "pid_control.c"
     "crawler_main.c")

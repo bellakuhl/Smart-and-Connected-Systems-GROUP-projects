@@ -1,5 +1,5 @@
-#ifndef __T15_CRAWLER__
-#define __T15_CRAWLER__
+#ifndef __T15_CRAWLER_CONTROL__
+#define __T15_CRAWLER_CONTROL__
 
 #define STEERING_PWM_UNIT   MCPWM_UNIT_0
 #define STEERING_PWM_TIMER  MCPWM_TIMER_0
@@ -23,5 +23,7 @@ void crawler_esc_set_value(uint32_t pwm);
 
 uint32_t crawler_steering_get_value();
 void crawler_steering_set_value(uint32_t pwm);
+
+int8_t crawler_get_direction();
 
 #endif

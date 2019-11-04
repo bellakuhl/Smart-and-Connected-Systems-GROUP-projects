@@ -2,7 +2,7 @@
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "driver/mcpwm.h"
-#include "crawler.h"
+#include "crawler_control.h"
 
 void crawler_control_init()
 {
@@ -64,5 +64,15 @@ void crawler_steering_set_value(uint32_t pwm)
     steer_pwm_us = pwm;
     mcpwm_set_duty_in_us(STEERING_PWM_UNIT, STEERING_PWM_TIMER,
             MCPWM_OPR_A, steer_pwm_us);
+}
+
+int8_t crawler_get_direction()
+{
+    if (esc_pwm_us > PWM_NEUTRAL_US) {
+        return -1;
+    }
+    else {
+        return 1;
+    }
 }
 

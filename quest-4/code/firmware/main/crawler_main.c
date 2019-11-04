@@ -11,7 +11,7 @@
 #include "lwip/sys.h"
 
 #include "alphanumeric_display.h"
-#include "crawler.h"
+#include "crawler_control.h"
 #include "pid_control.h"
 #include "pulse_counter.h"
 #include "wifi.h"
@@ -154,6 +154,7 @@ void crawler_speed_monitor()
         float dist = 3.14159 * DIAMETER_M * revolutions;
 
         speed += dist/(period/1000.0f);
+        speed *= crawler_get_direction();
         samples++;
         if (samples == 5) {
             samples = 0;
@@ -164,6 +165,7 @@ void crawler_speed_monitor()
 
             float adjustment = PID(speed);
             float pwm_adjust = 200 * adjustment;
+
             printf("Adjustment: %f\n", adjustment);
             crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
         }
