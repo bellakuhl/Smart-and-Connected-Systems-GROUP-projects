@@ -5,6 +5,7 @@
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "driver/mcpwm.h"
+#include "driver/uart.h"
 
 #include "lwip/err.h"
 #include "lwip/sockets.h"
@@ -15,6 +16,7 @@
 #include "pid_control.h"
 #include "pulse_counter.h"
 #include "ultrasonic.h"
+#include "lidar.h"
 #include "wifi.h"
 
 #define DIAMETER_M 0.1778
@@ -193,6 +195,27 @@ void crawler_speed_monitor()
         vTaskDelay(period/portTICK_PERIOD_MS);
     }
 }
+#define LIDAR_FRONT_UART UART_NUM_0
+#define LIDAR_REAR_UART UART_NUM_2
+#define LIDAR_FRONT GPIO_NUM_33
+#define LIDAR_REAR  GPIO_NUM_14
+
+void lidar_monitor()
+{
+    while (1)
+    {
+        uint32_t front_dist = 0;
+        uint32_t front_stren = 0;
+        uint32_t rear_dist;
+        uint32_t rear_stren;
+
+        lidar_read(LIDAR_FRONT_UART, &front_dist, &front_stren);
+        lidar_read(LIDAR_REAR_UART, &rear_dist, &rear_stren);
+
+        crawler_log("Front: %d, Rear: %d\n", front_dist, rear_dist);
+        vTaskDelay(500/portTICK_PERIOD_MS);
+    }
+}
 
 
 void app_main()
@@ -200,6 +223,8 @@ void app_main()
     alphadisplay_init();
     pulsecounter_init();
     pulsecounter_start();
+    lidar_init(LIDAR_FRONT_UART, LIDAR_FRONT);
+    lidar_init(LIDAR_REAR_UART, LIDAR_REAR);
 
     wifi_init();
     wifi_connect((uint8_t *)"Group_15", 9, (uint8_t *)"smart-systems", 14);
@@ -207,15 +232,16 @@ void app_main()
     crawler_log("Connected\n");
 
     crawler_control_init();
-    crawler_calibrate();
+    //crawler_calibrate();
     crawler_steering_set_value(PWM_NEUTRAL_US);
     vTaskDelay(2000/portTICK_PERIOD_MS);
 
     PID_set_setpoint(0.1);
     PID_init();
 
-    xTaskCreate(crawler_cmd_recv, "crawler_cmd_recv", 4096, NULL, configMAX_PRIORITIES-2, NULL);
-    xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
-    xTaskCreate(distance_sensor_task, "distance_sensor_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
+    //xTaskCreate(crawler_cmd_recv, "crawler_cmd_recv", 4096, NULL, configMAX_PRIORITIES-2, NULL);
+    //xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
+    //xTaskCreate(distance_sensor_task, "distance_sensor_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
+    xTaskCreate(lidar_monitor, "lidar_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
 }
 
