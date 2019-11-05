@@ -14,6 +14,7 @@
 #include "crawler_control.h"
 #include "pid_control.h"
 #include "pulse_counter.h"
+#include "ultrasonic.h"
 #include "wifi.h"
 
 #define DIAMETER_M 0.1778
@@ -25,6 +26,13 @@ enum CrawlerCommands {
     CMD_START_AUTO,
     CMD_STOP_AUTO
 };
+
+typedef enum {
+    CRAWL_STATE_AUTO,
+    CRAWL_STATE_STOPPED
+} CrawlerState_t;
+
+static CrawlerState_t crawler_state = CRAWL_STATE_STOPPED;
 
 #pragma pack(push, 1)
 typedef struct {
@@ -41,7 +49,7 @@ static void crawler_send_msg(const char *msg)
     char addr_str[128];
     int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
     struct sockaddr_in destAddr;
-    destAddr.sin_addr.s_addr = inet_addr("192.168.1.147");
+    destAddr.sin_addr.s_addr = inet_addr("192.168.1.109");
     destAddr.sin_family = AF_INET;
     destAddr.sin_port = htons(8080);
     inet_ntoa_r(destAddr.sin_addr, addr_str, sizeof(char)*128 - 1);
@@ -125,10 +133,12 @@ static void crawler_cmd_recv()
                     mcpwm_set_duty_in_us(STEERING_PWM_UNIT, STEERING_PWM_TIMER, MCPWM_OPR_A, data->value);
                     break;
                 case CMD_START_AUTO:
-                    // TODO: Start automatic driving task
+                    crawler_esc_set_value(PWM_NEUTRAL_US - 100);
+                    crawler_state = CRAWL_STATE_AUTO;
                     break;
                 case CMD_STOP_AUTO:
-                    // TODO: Stop automatic driving task
+                    crawler_state = CRAWL_STATE_STOPPED;
+                    crawler_esc_set_value(PWM_NEUTRAL_US);
                     break;
                 default:
                     crawler_log("Unknown command type: %d", data->cmd);
@@ -137,33 +147,49 @@ static void crawler_cmd_recv()
     }
 }
 
+void distance_sensor_task()
+{
+    ultrasonic_serial_init();
+
+    while (1)
+    {
+        float dist = ultrasonic_read_latest();
+        crawler_log("Distance: %f\n", dist);
+        if (dist <= 0.32f && crawler_state == CRAWL_STATE_AUTO) {
+            crawler_esc_set_value(PWM_NEUTRAL_US);
+            crawler_state = CRAWL_STATE_STOPPED;
+        }
+    }
+}
+
 void crawler_speed_monitor()
 {
-    pulsecounter_init();
-    pulsecounter_start();
-
     int16_t last_pulse_count = 0;
     float speed = 0;
-    float period = 200;
+    float period = 1000;
 
     while(1)
     {
-        int16_t pulse_count = pulsecounter_get_count();
-        float revolutions = (float)(pulse_count - last_pulse_count)/6.0f;
-        float dist = 3.14159 * DIAMETER_M * revolutions;
+        if (crawler_state == CRAWL_STATE_AUTO)
+        {
+            int16_t pulse_count = pulsecounter_get_count();
+            float revolutions = (float)(pulse_count - last_pulse_count)/6.0f;
+            float dist = 3.14159 * DIAMETER_M * revolutions;
 
-        speed += dist/(period/1000.0f);
-        speed *= crawler_get_direction();
+            speed = dist/(period/1000.0f);
+            speed *= crawler_get_direction();
 
-        alphadisplay_write_float(speed);
-        last_pulse_count = pulse_count;
+            crawler_log("Speed: %.2f, PC: %u, LPC: %u, Delta: %u\n",
+                    speed, pulse_count, last_pulse_count, pulse_count - last_pulse_count);
+            alphadisplay_write_float(speed);
+            last_pulse_count = pulse_count;
 
-        float adjustment = PID(speed);
-        float pwm_adjust = 200 * adjustment;
+            float adjustment = PID(speed);
+            float pwm_adjust = adjustment;
 
-        printf("Adjustment: %f\n", adjustment);
-        crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
-
+            crawler_log("Adjustment: %f\n", adjustment);
+            crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
+        }
         vTaskDelay(period/portTICK_PERIOD_MS);
     }
 }
@@ -172,21 +198,24 @@ void crawler_speed_monitor()
 void app_main()
 {
     alphadisplay_init();
+    pulsecounter_init();
+    pulsecounter_start();
+
     wifi_init();
     wifi_connect((uint8_t *)"Group_15", 9, (uint8_t *)"smart-systems", 14);
     wifi_wait_for_ip();
     crawler_log("Connected\n");
 
     crawler_control_init();
-    //crawler_calibrate();
+    crawler_calibrate();
     crawler_steering_set_value(PWM_NEUTRAL_US);
-    crawler_esc_set_value(PWM_NEUTRAL_US - 100);
     vTaskDelay(2000/portTICK_PERIOD_MS);
 
-    PID_set_setpoint(0.3);
+    PID_set_setpoint(0.1);
     PID_init();
 
-    xTaskCreate(crawler_cmd_recv, "crawler_cmd_recv", 4096, NULL, configMAX_PRIORITIES-1, NULL);
+    xTaskCreate(crawler_cmd_recv, "crawler_cmd_recv", 4096, NULL, configMAX_PRIORITIES-2, NULL);
     xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
+    xTaskCreate(distance_sensor_task, "distance_sensor_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
 }
 

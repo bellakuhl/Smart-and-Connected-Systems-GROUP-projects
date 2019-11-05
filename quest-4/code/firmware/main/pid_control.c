@@ -14,9 +14,6 @@
 #define HW_TIMER_IDX 0
 
 // PID constants
-#define KP 0.3
-#define KD 1
-#define KI 1
 
 static float setpoint = 40;
 // Flag for dt
@@ -25,6 +22,9 @@ static int dt_complete = 0;
 static float previous_error = 0;
 static float integral = 0;
 
+static float KP = 30;
+static float KI = 0;
+static float KD = 0; // Disabled
 
 // Define timer interrupt handler
 void IRAM_ATTR timer_isr()
@@ -70,10 +70,10 @@ float PID(float measured_value) {
   double dt = ((double)timer_val / (double)TIMER_SCALE);
   float error = setpoint - measured_value;
 
-  integral = integral + error * dt;
+  integral += error * dt;
 
   float derivative = (error - previous_error) / dt;
-  float output = KP * error; //+ KI * integral + KD * derivative;
+  float output = KP * error + KI * integral + KD * derivative;
   previous_error = error;
   printf("Setpoint: %.1f, Measurement: %.1f, Error: %.1f, Previous Error: %.1f\n",
           setpoint, measured_value, error, previous_error);
@@ -89,5 +89,15 @@ void PID_init()
 void PID_set_setpoint(float sp)
 {
     setpoint = sp;
+}
+
+void PID_tune_kp(float value)
+{
+    KP = value;
+}
+
+void PID_tune_ki(float value)
+{
+    KI = value;
 }
 
