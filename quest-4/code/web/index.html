@@ -10,10 +10,13 @@
         <meta name="theme-color" content="#fafafa">
         <style>
             body {margin: 0; body: 0}
+            * {box-sizing: border-box;}
             #controls {
-                width: 100vw;
-                height: 10vh;
+                padding: 0.5em 0;
+                width: 80vw;
+                height: 15vh;
                 text-align: center;
+                margin: auto;
             }
 
             button {
@@ -21,31 +24,33 @@
                 background-color: #efefef;
                 padding: 0.25em 0.5em;
                 font-size: 1.2em;
-
+                width: 200px;
+                margin: 0.25em 0.5em; 
             }
 
             #log {
                 margin: auto;
                 width: 80vw;
-                height: 90vh;
+                height: 80vh;
                 border: 1px solid #9a9a9a;
                 padding: 1em;
+                overflow: auto;
             }
         </style>
     </head>
     <body>
         <div id="controls">
-            <button id="escForward" type="button">Esc Up</button>
-            <button id="escBackward" type="button">Esc Down</button>
-            <button id="escStop" type="button">Esc Stop</button>
-
+            <button id="escForward" type="button">Esc Forward</button>
             <button id="turnLeft" type="button">Steer Left</button>
-            <button id="turnRight" type="button">Steer Right</button>
-            <button id="turnCenter" type="button">Steer Center</button>
-
-            <button id="calibrate" type="button">Calibrate</button>
             <button id="startAuto" type="button">Start Auto</button>
+            <br>
+            <button id="escBackward" type="button">Esc Rev</button>
+            <button id="turnRight" type="button">Steer Right</button>
             <button id="stopAuto" type="button">Stop Auto</button>
+            <br>
+            <button id="escStop" type="button">Esc Stop</button>
+            <button id="turnCenter" type="button">Steer Center</button>
+            <button id="calibrate" type="button">Calibrate</button>
         </div>
         <div id="log"></div>
         <script src="/node_modules/socket.io-client/dist/socket.io.js"></script>

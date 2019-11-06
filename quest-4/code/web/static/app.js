@@ -13,8 +13,10 @@
 
     function logMessage(message) {
         var el = document.createElement("div");
+        var logEl = document.querySelector("#log");
         el.textContent = message;
-        document.querySelector("#log").appendChild(el);
+        logEl.appendChild(el);
+        logEl.scrollTop = logEl.scrollHeight;
     }
 
     function increment(control) {
