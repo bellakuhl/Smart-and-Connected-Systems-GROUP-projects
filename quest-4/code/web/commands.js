@@ -19,6 +19,7 @@ const CMD_ESC = 0;
 const CMD_STEERING = 1;
 const CMD_START_AUTO = 2;
 const CMD_STOP_AUTO = 3;
+const CMD_CALIBRATE = 4;
 
 const PWM_MIN = 900;
 const PWM_NEUTRAL = 1500;
@@ -97,6 +98,14 @@ app.post("/stop", function (request, response) {
         response.status(200).send("Stop command sent.");
     }).catch(function (err) {
         response.status(500).send("Error sending stop command.");
+    });
+});
+
+app.post("/calibrate", function (request, response) {
+    send_command(CMD_CALIBRATE, 0).then(function (value) {
+        response.status(200).send("Calibrating...");
+    }).catch(function (err) {
+        response.status(500).send("Error sending calibrate command.");
     });
 });
 

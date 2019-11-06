@@ -85,6 +85,15 @@
                 logMessage(xhr.response.message);
             });
         });
+
+        document.querySelector("#calibrate").addEventListener("click", function () {
+            axios.post("/calibrate").then(function (resp) {
+                logMessage(resp.data);
+            }).catch(function (xhr) {
+                logMessage(xhr.response.message);
+            });
+        });
+
         setup_socket();
     });
 }());

@@ -32,7 +32,8 @@ enum CrawlerCommands {
     CMD_ESC = 0,
     CMD_STEER,
     CMD_START_AUTO,
-    CMD_STOP_AUTO
+    CMD_STOP_AUTO,
+    CMD_CALIBRATE
 };
 
 typedef enum {
@@ -156,6 +157,9 @@ static void crawler_cmd_recv()
                     break;
                 case CMD_STOP_AUTO:
                     crawler_stop();
+                    break;
+                case CMD_CALIBRATE:
+                    crawler_calibrate();
                     break;
                 default:
                     crawler_log("Unknown command type: %d", data->cmd);
