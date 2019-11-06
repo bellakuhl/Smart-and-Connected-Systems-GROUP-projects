@@ -22,6 +22,8 @@
 #define DIAMETER_M 0.1778
 #define CMD_RECV_PORT 8080
 
+#define WIFI_ENABLED
+
 // When starting in AUTO mode, use this speed
 // as the default.
 #define CRAWLER_START_PWM (PWM_NEUTRAL_US - 100)
@@ -84,7 +86,9 @@ static void crawler_log(const char *format, ...)
     vsprintf(buffer, format, args);
     va_end(args);
     printf(buffer);
+#ifdef WIFI_ENABLED
     crawler_send_msg(buffer);
+#endif
 }
 
 static void crawler_stop()
@@ -180,6 +184,7 @@ void crawler_speed_monitor()
     int16_t last_pulse_count = 0;
     float speed = 0;
     float period = 1000;
+
     while(1)
     {
         int16_t pulse_count = pulsecounter_get_count();
@@ -254,10 +259,12 @@ void app_main()
     lidar_init(LIDAR_FRONT_UART, LIDAR_FRONT);
     lidar_init(LIDAR_REAR_UART, LIDAR_REAR);
 
+#ifdef WIFI_ENABLED
     wifi_init();
     wifi_connect((uint8_t *)"Group_15", 9, (uint8_t *)"smart-systems", 14);
     wifi_wait_for_ip();
     crawler_log("Connected\n");
+#endif
 
     alphadisplay_write_ascii('C', 0);
     alphadisplay_write_ascii('L', 1);
@@ -271,7 +278,9 @@ void app_main()
     PID_set_setpoint(0.1);
     PID_init();
 
+#ifdef WIFI_ENABLED
     xTaskCreate(crawler_cmd_recv, "crawler_cmd_recv", 4096, NULL, configMAX_PRIORITIES-2, NULL);
+#endif
     xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(distance_sensor_task, "distance_sensor_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(lidar_monitor, "lidar_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
