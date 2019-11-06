@@ -22,6 +22,10 @@
 #define DIAMETER_M 0.1778
 #define CMD_RECV_PORT 8080
 
+// When starting in AUTO mode, use this speed
+// as the default.
+#define CRAWLER_START_PWM (PWM_NEUTRAL_US - 100)
+
 enum CrawlerCommands {
     CMD_ESC = 0,
     CMD_STEER,
@@ -83,6 +87,14 @@ static void crawler_log(const char *format, ...)
     crawler_send_msg(buffer);
 }
 
+static void crawler_stop()
+{
+    // TODO: If time, make it stop gracefully
+    crawler_state = CRAWL_STATE_STOPPED;
+    crawler_esc_set_value(PWM_NEUTRAL_US);
+}
+
+
 #define RX_BUFFER_SIZE 128
 static void crawler_cmd_recv()
 {
@@ -135,12 +147,11 @@ static void crawler_cmd_recv()
                     mcpwm_set_duty_in_us(STEERING_PWM_UNIT, STEERING_PWM_TIMER, MCPWM_OPR_A, data->value);
                     break;
                 case CMD_START_AUTO:
-                    crawler_esc_set_value(PWM_NEUTRAL_US - 100);
+                    crawler_esc_set_value(CRAWLER_START_PWM);
                     crawler_state = CRAWL_STATE_AUTO;
                     break;
                 case CMD_STOP_AUTO:
-                    crawler_state = CRAWL_STATE_STOPPED;
-                    crawler_esc_set_value(PWM_NEUTRAL_US);
+                    crawler_stop();
                     break;
                 default:
                     crawler_log("Unknown command type: %d", data->cmd);
@@ -159,8 +170,7 @@ void distance_sensor_task()
         crawler_log("Distance: %f\n", dist);
         if (dist <= 0.32f && crawler_state == CRAWL_STATE_AUTO) {
             crawler_log("Stop Distance: %f\n", dist);
-            crawler_esc_set_value(PWM_NEUTRAL_US);
-            crawler_state = CRAWL_STATE_STOPPED;
+            crawler_stop();
         }
     }
 }
@@ -170,18 +180,17 @@ void crawler_speed_monitor()
     int16_t last_pulse_count = 0;
     float speed = 0;
     float period = 1000;
-
     while(1)
     {
+        int16_t pulse_count = pulsecounter_get_count();
+        float revolutions = (float)(pulse_count - last_pulse_count)/6.0f;
+        float dist = 3.14159 * DIAMETER_M * revolutions;
+
+        speed = dist/(period/1000.0f);
+        speed *= crawler_get_direction();
+
         if (crawler_state == CRAWL_STATE_AUTO)
         {
-            int16_t pulse_count = pulsecounter_get_count();
-            float revolutions = (float)(pulse_count - last_pulse_count)/6.0f;
-            float dist = 3.14159 * DIAMETER_M * revolutions;
-
-            speed = dist/(period/1000.0f);
-            speed *= crawler_get_direction();
-
             //crawler_log("Speed: %.2f, PC: %u, LPC: %u, Delta: %u\n",
             //        speed, pulse_count, last_pulse_count, pulse_count - last_pulse_count);
             alphadisplay_write_float(speed);
@@ -193,6 +202,7 @@ void crawler_speed_monitor()
             //crawler_log("Adjustment: %f\n", adjustment);
             crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
         }
+
         vTaskDelay(period/portTICK_PERIOD_MS);
     }
 }
@@ -234,6 +244,11 @@ void lidar_monitor()
 void app_main()
 {
     alphadisplay_init();
+    alphadisplay_write_ascii('I', 0);
+    alphadisplay_write_ascii('N', 1);
+    alphadisplay_write_ascii('I', 2);
+    alphadisplay_write_ascii('T', 3);
+
     pulsecounter_init();
     pulsecounter_start();
     lidar_init(LIDAR_FRONT_UART, LIDAR_FRONT);
@@ -244,6 +259,10 @@ void app_main()
     wifi_wait_for_ip();
     crawler_log("Connected\n");
 
+    alphadisplay_write_ascii('C', 0);
+    alphadisplay_write_ascii('L', 1);
+    alphadisplay_write_ascii('B', 2);
+    alphadisplay_write_ascii('R', 3);
     crawler_control_init();
     crawler_calibrate();
     crawler_steering_set_value(PWM_NEUTRAL_US);
