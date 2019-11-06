@@ -83,7 +83,7 @@ app.post("/control", function (request, response) {
     }
 });
 
-app.post("/start", function (request) {
+app.post("/start", function (request, response) {
     send_command(CMD_START_AUTO, 0).then(function (value) {
         response.status(200).send("Started Autonomous Routine");
     }).catch(function (err) {
@@ -91,7 +91,8 @@ app.post("/start", function (request) {
     });
 });
 
-app.post("/stop", function (request) {
+app.post("/stop", function (request, response) {
+    console.log(response);
     send_command(CMD_STOP_AUTO, 0).then(function (value) {
         response.status(200).send("Stop command sent.");
     }).catch(function (err) {

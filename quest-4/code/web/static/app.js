@@ -72,17 +72,17 @@
 
         document.querySelector("#startAuto").addEventListener("click", function () {
             axios.post("/start").then(function (resp) {
-                logMessage(response.data);
+                logMessage(resp.data);
             }).catch(function (xhr) {
-                logMessage(xhr.response.data);
+                logMessage(xhr.response.message);
             });
         });
 
         document.querySelector("#stopAuto").addEventListener("click", function () {
             axios.post("/stop").then(function (resp) {
-                logMessage(response.data);
+                logMessage(resp.data);
             }).catch(function (xhr) {
-                logMessage(xhr.response.data);
+                logMessage(xhr.response.message);
             });
         });
         setup_socket();
