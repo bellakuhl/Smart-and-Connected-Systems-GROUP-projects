@@ -53,10 +53,11 @@ typedef struct {
 } CrawlerCmd_t;
 #pragma pack(pop)
 
+static int send_socket;
+
 static void crawler_send_msg(const char *msg)
 {
     char addr_str[128];
-    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
     struct sockaddr_in destAddr;
     destAddr.sin_addr.s_addr = inet_addr("192.168.1.109");
     destAddr.sin_family = AF_INET;
@@ -64,7 +65,7 @@ static void crawler_send_msg(const char *msg)
     inet_ntoa_r(destAddr.sin_addr, addr_str, sizeof(char)*128 - 1);
 
     int err = sendto(
-        sock,
+        send_socket,
         msg,
         strlen(msg),
         0,
@@ -275,6 +276,7 @@ void app_main()
     wifi_init();
     wifi_connect((uint8_t *)"Group_15", 9, (uint8_t *)"smart-systems", 14);
     wifi_wait_for_ip();
+    send_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
     crawler_log("Connected\n");
 #endif
 
