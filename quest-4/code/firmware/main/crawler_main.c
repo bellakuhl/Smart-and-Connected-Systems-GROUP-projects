@@ -262,10 +262,10 @@ void app_main()
 {
     alphadisplay_init();
     vTaskDelay(1000/portTICK_PERIOD_MS);
-    alphadisplay_write_ascii('I', 0);
-    alphadisplay_write_ascii('N', 1);
-    alphadisplay_write_ascii('I', 2);
-    alphadisplay_write_ascii('T', 3);
+    alphadisplay_write_ascii(0, 'I');
+    alphadisplay_write_ascii(1, 'N');
+    alphadisplay_write_ascii(2, 'I');
+    alphadisplay_write_ascii(3, 'T');
 
     pulsecounter_init();
     pulsecounter_start();
@@ -280,10 +280,10 @@ void app_main()
     crawler_log("Connected\n");
 #endif
 
-    alphadisplay_write_ascii('C', 0);
-    alphadisplay_write_ascii('L', 1);
-    alphadisplay_write_ascii('B', 2);
-    alphadisplay_write_ascii('R', 3);
+    alphadisplay_write_ascii(0, 'C');
+    alphadisplay_write_ascii(1, 'L');
+    alphadisplay_write_ascii(2, 'B');
+    alphadisplay_write_ascii(3, 'R');
     crawler_control_init();
     crawler_calibrate();
     crawler_steering_set_value(PWM_NEUTRAL_US);
