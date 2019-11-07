@@ -26,7 +26,7 @@
 
 // When starting in AUTO mode, use this speed
 // as the default.
-#define CRAWLER_START_PWM (PWM_NEUTRAL_US - 100)
+#define CRAWLER_START_PWM (PWM_NEUTRAL_US - 200)
 
 enum CrawlerCommands {
     CMD_ESC = 0,
@@ -172,13 +172,20 @@ void distance_sensor_task()
 {
     ultrasonic_serial_init();
 
+    int triggered_count = 0;
     while (1)
     {
         float dist = ultrasonic_read_latest();
         crawler_log("Distance: %f\n", dist);
         if (dist <= 0.32f && crawler_state == CRAWL_STATE_AUTO) {
-            crawler_log("Stop Distance: %f\n", dist);
-            crawler_stop();
+            triggered_count++;
+            if (triggered_count >= 10) {
+                crawler_log("Stop Distance: %f\n", dist);
+                crawler_stop();
+            }
+        }
+        else {
+            triggered_count = 0;
         }
     }
 }
@@ -224,8 +231,6 @@ void lidar_monitor()
 {
     while (1)
     {
-        if (crawler_state == CRAWL_STATE_AUTO)
-        {
             uint32_t front_dist = 0;
             uint32_t front_stren = 0;
             uint32_t rear_dist;
@@ -234,17 +239,19 @@ void lidar_monitor()
             lidar_read(LIDAR_FRONT_UART, &front_dist, &front_stren);
             lidar_read(LIDAR_REAR_UART, &rear_dist, &rear_stren);
 
+        if (crawler_state == CRAWL_STATE_AUTO)
+        {
             if (front_dist > rear_dist){
                 //steer right
-                crawler_steering_set_value(crawler_steering_get_value() + 100);
+                crawler_steering_set_value(crawler_steering_get_value() - 100);
             }
             else if (rear_dist > front_dist) {
                 // steer right
-                crawler_steering_set_value(crawler_steering_get_value() - 100);
+                crawler_steering_set_value(crawler_steering_get_value() + 100);
             }
-            crawler_log("Front: %.2d\tRear: %.2d\tSteering Val: %.2d\n", front_dist, rear_dist, crawler_steering_get_value());
-            //crawler_log("Front: %d, Rear: %d\n", front_dist, rear_dist);
         }
+        crawler_log("Front: %.2d\tRear: %.2d\tSteering Val: %.2d\n", front_dist, rear_dist, crawler_steering_get_value());
+        //crawler_log("Front: %d, Rear: %d\n", front_dist, rear_dist);
         vTaskDelay(500/portTICK_PERIOD_MS);
     }
 }
@@ -253,6 +260,7 @@ void lidar_monitor()
 void app_main()
 {
     alphadisplay_init();
+    vTaskDelay(1000/portTICK_PERIOD_MS);
     alphadisplay_write_ascii('I', 0);
     alphadisplay_write_ascii('N', 1);
     alphadisplay_write_ascii('I', 2);
@@ -279,7 +287,7 @@ void app_main()
     crawler_steering_set_value(PWM_NEUTRAL_US);
     vTaskDelay(2000/portTICK_PERIOD_MS);
 
-    PID_set_setpoint(0.1);
+    PID_set_setpoint(0.3);
     PID_init();
 
 #ifdef WIFI_ENABLED
