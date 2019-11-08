@@ -66,6 +66,9 @@ PID control allowed us to adjust this power more dynamically than simply adding 
 
 ## References
 
+* We referenced the provided [PID design template](http://whizzer.bu.edu/briefs/design-patterns/dp-pid) to structure the PID control code.
+
+* We referenced a [PID tutorial](https://www.teachmemicro.com/arduino-pid-control-tutorial/) to learn more about PID control.
 
 -----
 
