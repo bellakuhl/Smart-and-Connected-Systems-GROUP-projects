@@ -1,3 +1,8 @@
+/* Isabella Kuhl, Laura Reeves, Joesph Roosi
+* 10/5/19
+* Program for collecting side distance with LIDAR
+*/
+
 #include "driver/uart.h"
 
 #define RX_BUF_SIZE 20*9
@@ -81,4 +86,3 @@ void lidar_read(int uart_num, uint32_t *dist, uint32_t *strength)
     int length = uart_read_bytes(uart_num, data, RX_BUF_SIZE, 20/portTICK_PERIOD_MS);
     average_readings(data, length, dist, strength);
 }
-

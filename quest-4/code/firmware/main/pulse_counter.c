@@ -1,3 +1,8 @@
+/* Isabella Kuhl, Laura Reeves, Joesph Roosi
+* 11/5/19
+* Counts pulses from optical encoder
+*/
+
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -121,4 +126,3 @@ int16_t pulsecounter_get_count()
 {
     return pulse_count;
 }
-

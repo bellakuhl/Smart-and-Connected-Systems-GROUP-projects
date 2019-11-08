@@ -1,3 +1,7 @@
+/* Isabella Kuhl, Laura Reeves, Joesph Roosi
+* Header for crawler control
+*/
+
 #ifndef __T15_CRAWLER_CONTROL__
 #define __T15_CRAWLER_CONTROL__
 

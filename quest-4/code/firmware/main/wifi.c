@@ -1,3 +1,7 @@
+/* Isabella Kuhl, Laura Reeves, Joesph Roosi
+* 11/2/19
+* Program for initalizing wifi
+*/
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -95,4 +99,3 @@ char *wifi_get_ip_addr()
 {
     return s_wifi_ip;
 }
-

@@ -1,3 +1,6 @@
+/* Isabella Kuhl, Laura Reeves, Joesph Roosi
+* Header for using alphanumeric alphadisplay
+*/
 #include <stdint.h>
 
 #define ALPHADISPLAY_BLINK_OFF 0
@@ -49,4 +52,3 @@ void alphadisplay_start();
  * Stop writing to the display
  */
 void alphadisplay_stop();
-

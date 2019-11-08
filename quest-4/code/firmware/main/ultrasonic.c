@@ -1,3 +1,8 @@
+/* Isabella Kuhl, Laura Reeves, Joesph Roosi
+* 11/7/19
+* Program for collecting data from front of vehicle from ultrasonic
+*/
+
 #include <stdlib.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
@@ -54,4 +59,3 @@ float ultrasonic_read_latest()
     int32_t inches = atoi(num);
     return inches_to_meters(inches);
 }
-

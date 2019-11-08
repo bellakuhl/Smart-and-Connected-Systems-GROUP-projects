@@ -1,3 +1,7 @@
+/* Isabella Kuhl, Laura Reeves, Joesph Roosi
+* Program for controlling sensors and sending to server
+*/
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -300,4 +304,3 @@ void app_main()
     alphadisplay_write_ascii(2, '0');
     alphadisplay_write_ascii(3, '0');
 }
-

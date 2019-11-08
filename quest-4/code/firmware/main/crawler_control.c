@@ -1,3 +1,6 @@
+/* Isabella Kuhl, Laura Reeves, Joesph Roosi
+* Main control program for controlling and initializing crawler
+*/
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
@@ -95,4 +98,3 @@ int8_t crawler_get_direction()
         return 1;
     }
 }
-
