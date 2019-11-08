@@ -25,7 +25,7 @@ the minimum range of the sensor (30cm). When the car detects an object
 less than 35cm in front of it, the car will stop.
 
 
-**Uses alpha display to show current postion or speed**
+**Uses alpha display to show current position or speed**
 
 The speed is printing to the alpha display every measurement period.
 
@@ -38,6 +38,11 @@ In our testing, it did so.
 ## Solution Design
 
 ### Speed and PID Control (Bella)
+
+In order to control the speed and steering of the crawler we utlilized PID control. The sensors used to collect the data needed to adjust the motors were the microLIDAR and an optical sensor. The optical sensor outputs voltages corresponding to the amount of light reflected back from different surfaces. This means that white and black surfaces will output different voltages and thus can be distinguished. Utilizing this, we attached a repeating pattern of black and white wedges to the inside of the rear tire on the crawler. As the wheel turns, we count the number of times the voltage changes and can therefore know how far the crawler has gone given the diameter of the tires. If the user inputs a desired speed we can use PID control to see how far the motors have turned and compare this to how far they *should* go. This in turn either increases or decreases the power supplied to the motors.
+
+PID control allowed us to adjust this power more dynamically than simply adding or subtracting a set error value. The proportional adjustment part of PID does the above operation while the integration and derivative parts account for large errors as well as consistent errors that occur overtime. As mentioned, these components allow for more controlled and accurate adjustments.
+
 
 ### Distance Sensing (Joe)
 
