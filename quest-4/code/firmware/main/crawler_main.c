@@ -26,7 +26,7 @@
 
 // When starting in AUTO mode, use this speed
 // as the default.
-#define CRAWLER_START_PWM (PWM_NEUTRAL_US - 200)
+#define CRAWLER_START_PWM (PWM_NEUTRAL_US - 150)
 
 enum CrawlerCommands {
     CMD_ESC = 0,
@@ -153,6 +153,7 @@ static void crawler_cmd_recv()
                     mcpwm_set_duty_in_us(STEERING_PWM_UNIT, STEERING_PWM_TIMER, MCPWM_OPR_A, data->value);
                     break;
                 case CMD_START_AUTO:
+                    PID_set_setpoint(0.2);
                     crawler_esc_set_value(CRAWLER_START_PWM);
                     crawler_state = CRAWL_STATE_AUTO;
                     break;
@@ -178,9 +179,9 @@ void distance_sensor_task()
     {
         float dist = ultrasonic_read_latest();
         crawler_log("Distance: %f\n", dist);
-        if (dist <= 0.32f && crawler_state == CRAWL_STATE_AUTO) {
+        if (dist <= 0.38f && crawler_state == CRAWL_STATE_AUTO) {
             triggered_count++;
-            if (triggered_count >= 10) {
+            if (triggered_count >= 2) {
                 crawler_log("Stop Distance: %f\n", dist);
                 crawler_stop();
             }
@@ -188,6 +189,7 @@ void distance_sensor_task()
         else {
             triggered_count = 0;
         }
+        vTaskDelay(100/portTICK_PERIOD_MS);
     }
 }
 
@@ -223,37 +225,33 @@ void crawler_speed_monitor()
         vTaskDelay(period/portTICK_PERIOD_MS);
     }
 }
-#define LIDAR_FRONT_UART UART_NUM_0
-#define LIDAR_REAR_UART UART_NUM_2
-#define LIDAR_FRONT GPIO_NUM_33
-#define LIDAR_REAR  GPIO_NUM_14
+#define LIDAR_RIGHT_UART UART_NUM_0
+#define LIDAR_LEFT_UART UART_NUM_2
+#define LIDAR_RIGHT GPIO_NUM_33
+#define LIDAR_LEFT  GPIO_NUM_14
 
 void lidar_monitor()
 {
     while (1)
     {
-            uint32_t front_dist = 0;
-            uint32_t front_stren = 0;
-            uint32_t rear_dist;
-            uint32_t rear_stren;
+            uint32_t right_dist = 0;
+            uint32_t right_stren = 0;
+            uint32_t left_dist;
+            uint32_t left_stren;
 
-            lidar_read(LIDAR_FRONT_UART, &front_dist, &front_stren);
-            lidar_read(LIDAR_REAR_UART, &rear_dist, &rear_stren);
+            lidar_read(LIDAR_RIGHT_UART, &right_dist, &right_stren);
+            lidar_read(LIDAR_LEFT_UART, &left_dist, &left_stren);
 
-        if (crawler_state == CRAWL_STATE_AUTO)
+        if (1 || crawler_state == CRAWL_STATE_AUTO)
         {
-            if (front_dist > rear_dist){
-                //steer right
-                crawler_steering_set_value(crawler_steering_get_value() - 100);
-            }
-            else if (rear_dist > front_dist) {
-                // steer right
-                crawler_steering_set_value(crawler_steering_get_value() + 100);
-            }
+            uint32_t diff = left_dist - right_dist;
+            int value = diff*7 + PWM_NEUTRAL_US;
+            crawler_steering_set_value(value);
+            crawler_log("Setting to: %.2d\n", value);
         }
-        crawler_log("Front: %.2d\tRear: %.2d\tSteering Val: %.2d\n", front_dist, rear_dist, crawler_steering_get_value());
-        //crawler_log("Front: %d, Rear: %d\n", front_dist, rear_dist);
-        vTaskDelay(500/portTICK_PERIOD_MS);
+        crawler_log("Right: %.2d\tLeft: %.2d\tSteering Val: %.2d\n", right_dist, left_dist, crawler_steering_get_value());
+        //crawler_log("right: %d, left: %d\n", right_dist, left_dist);
+        vTaskDelay(100/portTICK_PERIOD_MS);
     }
 }
 
@@ -269,8 +267,8 @@ void app_main()
 
     pulsecounter_init();
     pulsecounter_start();
-    lidar_init(LIDAR_FRONT_UART, LIDAR_FRONT);
-    lidar_init(LIDAR_REAR_UART, LIDAR_REAR);
+    lidar_init(LIDAR_RIGHT_UART, LIDAR_RIGHT);
+    lidar_init(LIDAR_LEFT_UART, LIDAR_LEFT);
 
 #ifdef WIFI_ENABLED
     wifi_init();
@@ -289,7 +287,6 @@ void app_main()
     crawler_steering_set_value(PWM_NEUTRAL_US);
     vTaskDelay(2000/portTICK_PERIOD_MS);
 
-    PID_set_setpoint(0.3);
     PID_init();
 
 #ifdef WIFI_ENABLED
@@ -298,5 +295,9 @@ void app_main()
     xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(distance_sensor_task, "distance_sensor_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(lidar_monitor, "lidar_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
+    alphadisplay_write_ascii(0, '0');
+    alphadisplay_write_ascii(1, '0');
+    alphadisplay_write_ascii(2, '0');
+    alphadisplay_write_ascii(3, '0');
 }
 

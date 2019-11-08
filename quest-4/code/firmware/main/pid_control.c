@@ -89,6 +89,7 @@ void PID_init()
 void PID_set_setpoint(float sp)
 {
     setpoint = sp;
+    previous_error = 0;
 }
 
 void PID_tune_kp(float value)

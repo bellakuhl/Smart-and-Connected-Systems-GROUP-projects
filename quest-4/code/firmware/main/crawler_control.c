@@ -51,6 +51,15 @@ void crawler_esc_set_value(uint32_t pwm)
     if (pwm > PWM_HIGH_US || pwm < PWM_LOW_US){
         return;
     }
+    if (pwm > PWM_HIGH_US) {
+        esc_pwm_us = PWM_HIGH_US;
+    }
+    else if (pwm < PWM_LOW_US) {
+        esc_pwm_us = PWM_LOW_US;
+    }
+    else {
+        esc_pwm_us = pwm;
+    }
     esc_pwm_us = pwm;
     mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER,
             MCPWM_OPR_A, esc_pwm_us);
@@ -64,10 +73,15 @@ uint32_t crawler_steering_get_value()
 
 void crawler_steering_set_value(uint32_t pwm)
 {
-    if (pwm > PWM_HIGH_US || pwm < PWM_LOW_US){
-        return;
+    if (pwm > PWM_HIGH_US) {
+        steer_pwm_us = PWM_HIGH_US;
     }
-    steer_pwm_us = pwm;
+    else if (pwm < PWM_LOW_US) {
+        steer_pwm_us = PWM_LOW_US;
+    }
+    else {
+        steer_pwm_us = pwm;
+    }
     mcpwm_set_duty_in_us(STEERING_PWM_UNIT, STEERING_PWM_TIMER,
             MCPWM_OPR_A, steer_pwm_us);
 }
