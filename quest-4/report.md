@@ -54,13 +54,13 @@ For the steering control, we used two lidars on either side of the crawler to ca
 
 
 ## Sketches and Photos
-<center><img src="./images/example.png" width="70%" /></center>  
+<center><img src="./images/crawler.jpg" width="70%" /></center>  
 <center> </center>
 
 
 ## Supporting Artifacts
 - [Link to repo](https://github.com/BU-EC444/Team15-Kuhl-Reeve-Rossi/tree/master/quest-4)
-- [Link to video demo]()
+- [Link to video demo](https://drive.google.com/open?id=1F8LkDDblGAYg2ol6MR_veic3Qc58igqU)
 
 
 ## Investigative Question (Laura?)
