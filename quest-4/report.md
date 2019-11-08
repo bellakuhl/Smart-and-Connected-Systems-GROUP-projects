@@ -48,6 +48,8 @@ PID control allowed us to adjust this power more dynamically than simply adding 
 
 ### Steering Control (Laura)
 
+For the steering control, we used two lidars on either side of the crawler to calculate distance from the wall on each side. Then we take the difference and use this to adjust the steering to bring the difference to zero. If the difference is great, then it will turn more than if the distance is small. This allows the crawler to stay in the middle of the track.
+
 ### Web Controls (Joe)
 
 
@@ -63,6 +65,11 @@ PID control allowed us to adjust this power more dynamically than simply adding 
 
 ## Investigative Question (Laura?)
 
+When hooking up sensors to our crawler, we found a few areas where there could be improvement. Firstly, we used microlidars on the side of the vehicle to keep the car moving straight along a wall. The main problem that we had with the microlidars was the amount of current that they pulled. We added an extra battery that was solely used for the two LiDARs, but without the extra battery, one of the microlidars was not working, which was causing the vehicle to swerve into a wall. The reason why we still used these instead of another sensor is because they are by far the most accurate and, more importantly, consistent. Many of the other sensors were relatively accurate, but we couldn't rely on two to read in the same values consistently. For example, our sonar sensors were fairly accurate, but they had enough variation in readings that they wouldn't be able to stay straight. What would have been perfect for the side sensors would've been a set of ultrasonic sensors or rangefinders that was very consistent, detected reflective surfaces, and didn't draw too much current. We used a solid wall, so their problems with glass were avoided, but this would be a problem if we had to go along a reflective surface. 
+
+We would have the same requirements for the front sensor. We chose to use the ultrasonic sensor because it didn't run into any problems with reflective surfaces. Our biggest problem with this sensor was the lack of accuracy and the minimum distance being 30cm. To account for the distance problem, we fixed it further back (approx. 20 cm from the front of the vehicle), but this sensor was a bit less accurate than the lidars. We also added in a check for multiple short distances (<30cm) before it stopped, because occasionally it would throw strange values. I think the best method would be to have both a LIDAR sensor and an ultrasonic sensor so when there is a non-reflective surface, the LIDAR will sense it, but when there is, you'll still have the ultrasonic sensor ensuring that you don't run into anything.
+
+Also, when reading about sensors used by self-driving cars, we found that many companies used radar and/or video cameras to sense objects alongside sonar and lidar sensors. We think these may also help to ensure proper stopping distance and balance out potential noise with the other sensors. There are [radar sensors specifically for short and long distance sensing] (https://levelfivesupplies.com/sensors-used-in-autonomous-vehicles/) and we think those would help because our LiDAR sensor gets a bit confused when pointed at a wall/object out of it’s scope.
 
 ## References
 
