@@ -54,7 +54,7 @@ For the steering control, we used two lidars on either side of the crawler to ca
 
 
 ## Sketches and Photos
-<center><img src="./images/crawler.jpg" width="70%" /></center>  
+<center><img src="./images/crawler.JPG" width="70%" /></center>  
 <center> </center>
 
 
