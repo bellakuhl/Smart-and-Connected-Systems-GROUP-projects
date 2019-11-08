@@ -45,12 +45,12 @@ PID control allowed us to adjust this power more dynamically than simply adding 
 
 ### Distance Sensing
 
-For sensing objects in front of the crawler, we used the ultrasonic sensor
-from quest 2. To get the most accurate readings we decided to use the serial
-output from the sensor. We positioned the sensor approximately 25cm from the
-front of the crawler. In auto mode, when we get at least 2 readings that are
-less than 38cm from the sensor, the crawler stops. This allows for a little
-bit of stopping distance so the crawler stops within 10cm of the wall.
+For sensing objects in front of the crawler, we used the ultrasonic sensor.
+To get the most accurate readings we decided to use the serial output from the sensor. 
+We positioned the sensor approximately 25cm from the
+front of the crawler. In auto mode, we poll every 100ms for a distance reading, when we get 
+at least 2 readings that are less than 38cm from the sensor, the crawler stops. The extra 3cm 
+allows for a little bit of room for stopping distance.
 
 ### Steering Control
 
