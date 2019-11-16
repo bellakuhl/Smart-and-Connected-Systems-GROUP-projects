@@ -136,7 +136,7 @@ App.post("/fob-access", SuperUserOnly, function (req, resp) {
             resp.status(200).json({accessRecord: rec});
         })
         .catch(function (err) {
-            resp.status(401).json({message: "Access unauthorized!"});
+            resp.status(403).json({message: "Access unauthorized!"});
         });
 });
 
@@ -149,6 +149,7 @@ async function start(port)
 {
     await db.init(); 
     HttpServer.listen(port);
+    console.log("Listening on port 8000");
 }
 
 

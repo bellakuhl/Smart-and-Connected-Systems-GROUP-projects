@@ -1,5 +1,6 @@
 const db = require('./database');
 async function create_user(uname, password, loc) {
+    db.fobs.insert("JoeTest", 1234, 6789);
     db.init().then(function () {
         return db.superUser.get(uname, password);
     }).then(function (user) {
@@ -16,8 +17,8 @@ async function create_user(uname, password, loc) {
 }
 
 async function main() {
-    await create_user("admin", "team15", "office"); 
     await create_user("sechub", "sechub1115", "classroom"); 
+    await create_user("admin", "team15", "office"); 
 }
 main();
 

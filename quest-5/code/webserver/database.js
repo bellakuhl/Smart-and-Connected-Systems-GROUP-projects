@@ -146,7 +146,7 @@ function insertSuperUser(username, password, loc)
         collections['SuperUser'].insert([
             {username: username, password: password, loc: loc}
         ], function (err, data) {
-            if (err) reject(err)
+            if (err) reject(err);
             else resolve();
         })
     });
