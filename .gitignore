@@ -65,4 +65,5 @@ _deps
 build/
 screenlog.*
 sdkconfig
+sdkconfig.*
 node_modules/
