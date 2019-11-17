@@ -163,11 +163,13 @@ App.post("/fob-access", RequireAuth, async function (req: AuthedRequest, resp) {
             loc: req.user.loc,
             fob_state: fob.fob_state
         };
+
         let rec = await db.accessLog.insert(record);
         resp.status(200).json({accessRecord: rec});
+        WebSocket.emit("access-request", JSON.stringify({record: rec}));
     }
     catch(err) {
-        console.log("/fob-access error ", err);
+        console.log(`Error: ${req.path} - ${err}`);
         resp.status(403).json({message: "Access unauthorized!"});
     }
 });

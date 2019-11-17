@@ -6,6 +6,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+import * as io from "socket.io-client";
 import axios from "axios";
 
 interface IAccessLogProps {}
@@ -46,11 +47,22 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 
-let loadTimeout: number|null = null;
+let LogStore: IAccessLogRecord[] = [];
+const socket = io(window.location.origin);
 export function AccessLogGrid(props: IAccessLogProps) {
     const classes = useStyles(undefined);
     const [state, setLoading] = React.useState<STATE>(STATE.LOADING);
     const [rows, setRows] = React.useState<IAccessLogRow[]>([]);
+
+    React.useEffect(function () {
+        loadData().then(function () {
+            socket.on("access-request", function (data: string) {
+                let record: IAccessLogRecord = JSON.parse(data).record;
+                LogStore.push(transformRecord(record));
+                setRows(LogStore.slice());
+            });
+        });
+    }, []);
 
     function renderEmpty() {
         return (
@@ -66,15 +78,18 @@ export function AccessLogGrid(props: IAccessLogProps) {
         );
     }
 
+    function transformRecord(record: IAccessLogRecord): IAccessLogRow {
+        let row: IAccessLogRow = Object.assign({}, record);
+        row.date = new Date(record.time);
+        row.key = `${record.time}_${record.hub_id}`;
+        return row;
+    }
+
     async function loadData() {
         let response = await axios.get("/fob-access/log");
         let rows: IAccessLogRecord[] = response.data['access_log'];
-        setRows(rows.map((r) => {
-            let row: IAccessLogRow = Object.assign({}, r);
-            row.date = new Date(r.time);
-            row.key = `${r.time}_${r.hub_id}`;
-            return row;
-        }));
+        LogStore = rows.map(transformRecord);
+        setRows(LogStore.slice());
         setLoading(STATE.DEFAULT);
     }
 
@@ -111,16 +126,6 @@ export function AccessLogGrid(props: IAccessLogProps) {
             </Paper>
             </div>
         );
-    }
-
-    if (state == STATE.LOADING) {
-        loadData();
-    }
-    else if (loadTimeout == null) {
-        loadTimeout = setTimeout(function () {
-            loadData();
-            loadTimeout = null;
-        }, 10000);
     }
 
     let data: JSX.Element;
