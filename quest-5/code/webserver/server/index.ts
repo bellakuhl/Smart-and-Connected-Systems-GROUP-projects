@@ -48,6 +48,28 @@ async function RequireAuth(req: AuthedRequest, resp: express.Response, next: any
     }
 }
 
+App.get("/fob-access/state", async function (req, resp) {
+    let query = req.query;
+    let fob_id = parseInt(query['fob-id'], 10);
+    if (isNaN(fob_id)) {
+        return resp.status(404).end();
+    }
+
+    try {
+        let fob = await db.fobs.get(fob_id);
+
+        if (fob == null) {
+            resp.status(404).end();
+        }
+        else {
+            resp.send(fob.fob_state);
+        }
+    }
+    catch (err) {
+        console.error(`ERROR: ${req.path} - ${err}`);
+        resp.status(500).send({message: err});
+    }
+});
 
 App.get("/fob-access/log", async function (req, resp) {
     let query = req.query;
@@ -93,7 +115,7 @@ App.get("/fob-access/log", async function (req, resp) {
 
 
 // Only an authorized user can see a list of authorized fobs.
-App.get("/authorized-fobs", RequireAuth, async function (req, resp) {
+App.get("/fob-access/authorized", RequireAuth, async function (req, resp) {
     try {
         let fobs = await db.fobs.list({});
         resp.json({fobs: fobs});
