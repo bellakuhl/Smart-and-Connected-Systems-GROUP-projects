@@ -1,20 +1,25 @@
-const http = require("http");
-const express = require("express");
-const io = require("socket.io");
-const db = require("./database");
+import http from "http";
+import path from "path";
+import express from "express";
+import io from "socket.io";
+import * as db from "./database";
 
-// Init
 let App = express();
-let HttpServer = http.Server(App);
-let Websocket = io(HttpServer);
+let HttpServer = new http.Server(App);
+let WebSocket = io(HttpServer);
 
 App.use("/static", express.static("static"));
 App.use("/node_modules", express.static("node_modules"));
+App.use("/client", express.static(path.join(__dirname, "../client")));
 App.use(express.json());
 
-// Only allow an authorized user to add fobs
-function SuperUserOnly (req, resp, next) {
-    // Basic auth middleware adapted from 
+interface AuthedRequest extends express.Request {
+    user?: db.ISuperUser
+}
+
+async function RequireAuth(req: AuthedRequest, resp: express.Response, next: any)
+{
+    // Basic auth middleware adapted from
     // https://jasonwatmore.com/post/2018/09/24/nodejs-basic-authentication-tutorial-with-example-api
     if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
         return resp.status(401).json({ message: 'Missing Authorization Header' });
@@ -23,9 +28,11 @@ function SuperUserOnly (req, resp, next) {
     const base64Credentials =  req.headers.authorization.split(' ')[1];
     const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
     const [username, password] = credentials.split(':');
-    db.superUser.get(username, password).then(function (data) {
+    try {
+        let data = await db.superUser.get(username, password);
         if (Array.isArray(data) && Array.length == 1) {
-            req.user = username;
+            req.user = data;
+            req.
             next();
         }
         else if (data) {
@@ -35,15 +42,17 @@ function SuperUserOnly (req, resp, next) {
         else {
             resp.status(401).json({ message: 'Invalid Authentication Credentials' });
         }
-    }).catch(function (err) {
+    }
+    catch (err) {
         return resp.status(401).json({ message: 'Invalid Authentication Credentials' });
-    });
+    }
 }
 
-App.get("/fob-access/log", function (req, resp) {
+
+App.get("/fob-access/log", async function (req, resp) {
     let query = req.query;
-    let dbQuery = {};
-    
+    let dbQuery: db.IFobAccessQuery = {};
+
     // Translate the request query to a database query.
     if (query.name) {
         dbQuery.person = query.name;
@@ -72,86 +81,86 @@ App.get("/fob-access/log", function (req, resp) {
         return resp.json({message: "Error - since must be earlier than until."});
     }
 
-    db.accessLog.get(dbQuery).
-        then(function (records) {
-            resp.json({access_log: records});
-        })
-        .catch(function (error) {
-            console.error("Error querying database: ", error);
-            resp.status(500).json({message: error});
-        });
+    try {
+        let records = await db.accessLog.get(dbQuery);
+        resp.json({access_log: records});
+    }
+    catch(err) {
+        console.error("Error querying database: ", err);
+        resp.status(500).json({message: err});
+    }
 });
 
 
 // Only an authorized user can see a list of authorized fobs.
-App.get("/authorized-fobs", SuperUserOnly, function (req, resp) {
-    db.fobs.list({}).then(function (fobs) {
+App.get("/authorized-fobs", RequireAuth, async function (req, resp) {
+    try {
+        let fobs = await db.fobs.list({});
         resp.json({fobs: fobs});
-    }).catch(function (err) {
+    }
+    catch(err) {
         console.error("/authorized-fobs ", err);
         resp.status(500).json({message: err});
-    })
+    }
 });
 
 
 // Only an authorized user can add a new authorized fob.
-App.post("/authorized-fobs", SuperUserOnly, function (req, resp) {
+App.post("/authorized-fobs", RequireAuth, async function (req, resp) {
     let data = req.body;
     if (!data.username || !data.fob_id || !data.fob_code) {
         return resp.status(422).json({message: "username, fob_id and fob_code are required!"});
     }
 
-    db.fobs.insert(data.username, data.fob_id, data.fob_code)
-        .then(function (){
-            resp.send(204).end();
-        })
-        .catch(function (err) {
-            console.error(err);
-            resp.status(500).json({message: "Error creating user: " + err});
-        })
-
+    try {
+        let fobs = await db.fobs.insert(data.username, data.fob_id, data.fob_code);
+        resp.send(204).end();
+    }
+    catch(err) {
+        console.error(err);
+        resp.status(500).json({message: "Error creating user: " + err});
+    }
 });
 
 
 // Only an authorized user (i.e. security hub) can try to authroize a hub
 // request.
-App.post("/fob-access", SuperUserOnly, function (req, resp) {
+App.post("/fob-access", RequireAuth, async function (req: AuthedRequest, resp) {
     let data = req.body;
     if (!data.fob_id || !data.fob_code) {
         return resp.status(422).json({message: "fob_id and fob_code are required."});
     }
 
-    db.fobs.access(data.fob_id, data.fob_code)
-        .then(function (data) {
-            let record = {
-                fob_id: data.fob_id,
-                hub_id: req.user.username,
-                person: data.username,
-                time: new Date().getTime(),
-                loc: req.user.loc
-            };
-            return db.accessLog.insert(record);
-        })
-        .then(function (rec) {
-            resp.status(200).json({accessRecord: rec});
-        })
-        .catch(function (err) {
-            resp.status(403).json({message: "Access unauthorized!"});
-        });
+    try {
+        let fob = await db.fobs.access(data.fob_id, data.fob_code);
+        let record: db.IFobAccessRecord = {
+            fob_id: fob.fob_id,
+            hub_id: req.user.username,
+            person: fob.username,
+            time: new Date().getTime(),
+            loc: req.user.loc,
+            fob_state: fob.fob_state
+        };
+        let rec = await db.accessLog.insert(record);
+        resp.status(200).json({accessRecord: rec});
+    }
+    catch(err) {
+        console.log("/fob-access error ", err);
+        resp.status(403).json({message: "Access unauthorized!"});
+    }
 });
 
 
 App.get("/", function (req, resp) {
-    resp.sendFile("static/index.html", {root: __dirname});
+    resp.sendFile("client/index.html", {root: path.join(__dirname, "..")});
 });
 
-async function start(port)
+async function start(port: number)
 {
-    await db.init(); 
+    await db.init();
     HttpServer.listen(port);
-    console.log("Listening on port 8000");
+    console.log(`Listening on port ${port}`);
 }
-
 
 if (require.main == module) {
     start(8000);
