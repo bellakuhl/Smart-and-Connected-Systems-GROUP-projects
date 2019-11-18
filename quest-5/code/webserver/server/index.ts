@@ -187,5 +187,12 @@ async function start(port: number)
 }
 
 if (require.main == module) {
-    start(8000);
+    let args = process.argv.slice(2);
+    let port = 8000;
+    if (args.length > 0) {
+        port = parseInt(args[0], 10);
+        if (!port) throw new Error(`Invalid port argument: ${port}`);
+    }
+    start(port);
 }
+
