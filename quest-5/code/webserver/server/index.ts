@@ -48,28 +48,6 @@ async function RequireAuth(req: AuthedRequest, resp: express.Response, next: any
     }
 }
 
-App.get("/fob-access/state", async function (req, resp) {
-    let query = req.query;
-    let fob_id = parseInt(query['fob-id'], 10);
-    if (isNaN(fob_id)) {
-        return resp.status(404).end();
-    }
-
-    try {
-        let fob = await db.fobs.get(fob_id);
-
-        if (fob == null) {
-            resp.status(404).end();
-        }
-        else {
-            resp.send(fob.fob_state);
-        }
-    }
-    catch (err) {
-        console.error(`ERROR: ${req.path} - ${err}`);
-        resp.status(500).send({message: err});
-    }
-});
 
 App.get("/fob-access/log", async function (req, resp) {
     let query = req.query;
@@ -160,8 +138,7 @@ App.post("/fob-access", RequireAuth, async function (req: AuthedRequest, resp) {
             hub_id: req.user.username,
             person: fob.username,
             time: new Date().getTime(),
-            loc: req.user.loc,
-            fob_state: fob.fob_state
+            loc: req.user.loc
         };
 
         let rec = await db.accessLog.insert(record);
@@ -195,4 +172,3 @@ if (require.main == module) {
     }
     start(port);
 }
-

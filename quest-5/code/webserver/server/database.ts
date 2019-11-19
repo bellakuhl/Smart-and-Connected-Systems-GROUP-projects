@@ -11,20 +11,15 @@ const DB = new Engine.Db(DATABASE_FOLDER, {});
 const COLLECTION_NAMES = ['FobAccessLog', "AuthorizedFob", "SuperUser"];
 export const collections: {[key: string]: any} = {};
 
-const FOB_STATE_LOCKED = "LOCKED";
-const FOB_STATE_UNLOCKED = "UNLOCKED";
-
 export interface IFob {
     username: string;
     fob_id: number;
     fob_code: string;
-    fob_state: string;
 }
 
 export interface ISanitizedFob {
     username: string;
     fob_id: number;
-    fob_state: string;
 }
 
 export interface IFobAccessRecord {
@@ -32,7 +27,6 @@ export interface IFobAccessRecord {
     fob_id: number;
     person: string;
     loc: string;
-    fob_state: string;
     hub_id: string;
 }
 
@@ -48,7 +42,6 @@ export interface IFobAccessQuery {
 export interface IFobQuery {
     fob_id?: string;
     person?: string;
-    fob_state?: string;
 }
 
 export interface ISuperUser {
@@ -115,15 +108,7 @@ async function fobAccess(fob_id: number, fob_code: number)
                     return reject("Unauthorized");
                 }
 
-                let fob: IFob = data[0];
-                let state = fob.fob_state === FOB_STATE_LOCKED ? FOB_STATE_UNLOCKED : FOB_STATE_LOCKED;
-                collections.AuthorizedFob.update({fob_id: fob.fob_id}, {$set: {fob_state: state}}, async function (err: any, updated: number) {
-                    if (err || updated !== 1) return reject(err);
-                    else {
-                        let fob = await getFob(fob_id);
-                        resolve(fob);
-                    }
-                });
+                resolve(sanitizeFob(data[0]));
             });
     });
 }
@@ -203,8 +188,7 @@ function insertFob(username: string, fob_id: number, fob_code: number, )
             let fob: IFob = {
                 username: username,
                 fob_id: fob_id,
-                fob_code: hashedFobCode,
-                fob_state: FOB_STATE_LOCKED
+                fob_code: hashedFobCode
             };
             collections.AuthorizedFob.insert([fob], function (err: cbError, data: IFob[]) {
                 if (err) {
@@ -249,4 +233,3 @@ export const fobs = {list: listFobs, get: getFob, insert: insertFob, access: fob
 if (require.main == module) {
     init();
 }
-

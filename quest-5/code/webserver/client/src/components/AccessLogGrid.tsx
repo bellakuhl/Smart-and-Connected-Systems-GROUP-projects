@@ -22,7 +22,6 @@ interface IAccessLogRecord {
     person: string;
     time: number;
     loc: string;
-    fob_state: string;
 }
 
 interface IAccessLogRow extends IAccessLogRecord {
@@ -103,7 +102,6 @@ export function AccessLogGrid(props: IAccessLogProps) {
                             <TableCell>Date</TableCell>
                             <TableCell>Person</TableCell>
                             <TableCell>Location</TableCell>
-                            <TableCell>Action</TableCell>
                             <TableCell>Fob ID</TableCell>
                             <TableCell>Hub ID</TableCell>
                         </TableRow>
@@ -116,7 +114,6 @@ export function AccessLogGrid(props: IAccessLogProps) {
                             </TableCell>
                             <TableCell>{row.person}</TableCell>
                             <TableCell>{row.loc}</TableCell>
-                            <TableCell>{row.fob_state}</TableCell>
                             <TableCell>{row.fob_id}</TableCell>
                             <TableCell>{row.hub_id}</TableCell>
                             </TableRow>
