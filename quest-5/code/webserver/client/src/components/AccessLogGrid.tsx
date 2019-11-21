@@ -38,6 +38,8 @@ const useStyles = makeStyles((theme: Theme) =>
             marginTop: theme.spacing(3),
             width: '100%',
             overflowX: 'auto',
+            maxHeight: '600px',
+            overflowY: 'auto',
             marginBottom: theme.spacing(2),
         },
         table: {
@@ -48,10 +50,17 @@ const useStyles = makeStyles((theme: Theme) =>
 
 let LogStore: IAccessLogRecord[] = [];
 const socket = io(window.location.origin);
+interface IColumnSort {
+    direction: number;
+    field: keyof IAccessLogRow;
+}
+
+
 export function AccessLogGrid(props: IAccessLogProps) {
     const classes = useStyles(undefined);
     const [state, setLoading] = React.useState<STATE>(STATE.LOADING);
     const [rows, setRows] = React.useState<IAccessLogRow[]>([]);
+    const [sort, setSort] = React.useState<IColumnSort>({direction: -1, field: "time"});
 
     React.useEffect(function () {
         loadData().then(function () {
@@ -92,18 +101,63 @@ export function AccessLogGrid(props: IAccessLogProps) {
         setLoading(STATE.DEFAULT);
     }
 
+    function createSortFunction(id: keyof IAccessLogRow) {
+        return function (evt: React.MouseEvent) {
+            if (sort.field == id) {
+                setSort({field: id, direction: sort.direction * -1});
+            }
+            else {
+                setSort({field: id, direction: 1});
+            }
+        }
+    }
+
+    function sortClasses(id: keyof IAccessLogRow) {
+        let classes = [];
+        if (sort.field == id) {
+            classes.push("sorted");
+            if (sort.direction == 1) {
+                classes.push("asc");
+            }
+            else {
+                classes.push("desc");
+            }
+        }
+
+        return classes.join(" ");
+    }
+
+
     function renderTable(rows: IAccessLogRow[]) {
+        rows = rows.sort(function (a: IAccessLogRow, b: IAccessLogRow) {
+            let aVal = a[sort.field];
+            let bVal = b[sort.field];
+            let dir = sort.direction;
+
+            if (aVal < bVal) {
+                return dir * -1;
+            }
+            else if (aVal > bVal) {
+                return 1 * dir;
+            }
+            else {
+                // Secondary sort by time asc/desc
+                return a.time < b.time ? -1 * dir :
+                       b.time < a.time ? 1  * dir : 0;
+            }
+        });
+
         return (
             <div className={classes.root}>
             <Paper className={classes.paper}>
-                <Table className={classes.table} size="small" aria-label="a dense table">
+                <Table className={classes.table} size="small" aria-label="a dense table"  stickyHeader>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Date</TableCell>
-                            <TableCell>Person</TableCell>
-                            <TableCell>Location</TableCell>
-                            <TableCell>Fob ID</TableCell>
-                            <TableCell>Hub ID</TableCell>
+                            <TableCell key="time"onClick={createSortFunction("time")} className={sortClasses("time")}>Date</TableCell>
+                            <TableCell onClick={createSortFunction("person")} className={sortClasses("person")}>Person</TableCell>
+                            <TableCell onClick={createSortFunction("loc")} className={sortClasses("loc")}>Location</TableCell>
+                            <TableCell onClick={createSortFunction("fob_id")} className={sortClasses("fob_id")}>Fob ID</TableCell>
+                            <TableCell onClick={createSortFunction("hub_id")} className={sortClasses("hub_id")}>Hub ID</TableCell>
                         </TableRow>
                         </TableHead>
                         <TableBody>

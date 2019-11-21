@@ -8,6 +8,9 @@ import {AccessLogGrid} from "./components/AccessLogGrid";
 ReactDOM.render (
     (<div>
         <Header />
-        <AccessLogGrid />
+        <div className="content">
+            <h2>Fob Access Log</h2>
+            <AccessLogGrid />
+        </div>
     </div>)
     , document.getElementById("app"));
