@@ -26,10 +26,10 @@
 * - Pin assignment: see defines below
 */
 
-#define RMT_TX_GPIO 26
+#define RMT_TX_GPIO 26 // A0
 #define RMT_TX_CHANNEL RMT_CHANNEL_0
-#define TXD_PIN (GPIO_NUM_25)
-#define RXD_PIN (GPIO_NUM_34)
+#define TXD_PIN (GPIO_NUM_25) // 25
+#define RXD_PIN (GPIO_NUM_34) // A2
 
 #define BUTTON_GPIO     4   // GPIO4 (A5) tactile button
 #define RED 15
@@ -37,7 +37,8 @@
 #define LOCKED_SIGNAL '3'
 #define UNLOCKED_SIGNAL '9'
 
-static char code[] = {0x80, 0x1f, 0x1d, 0x07, 0xce};
+// This will get configured in main
+static char code[5] = {0x80, 0, 0, 0, 0};
 static const int RX_BUF_SIZE = 1024;
 static int flag = 0;                  // interrupt flag
 char currentMessage = LOCKED_SIGNAL;  // message number
@@ -157,6 +158,11 @@ void app_main(void)
 
    gpio_install_isr_service(ESP_INTR_FLAG_IRAM);
    gpio_isr_handler_add(BUTTON_GPIO, gpio_isr_handler, (void*) BUTTON_GPIO);
+
+   code[1] = CONFIG_FOB_ID >> 8 & 0xff;
+   code[2] = CONFIG_FOB_ID >> 0 & 0xff;
+   code[3] = CONFIG_FOB_CODE >> 8 & 0xff;
+   code[4] = CONFIG_FOB_CODE >> 0 & 0xff;
 
    xTaskCreate(tx_task, "uart_tx_task", 1024*2, NULL, configMAX_PRIORITIES-2, NULL);
    xTaskCreate(rx_task, "uart_rx_task", 1024*2, NULL, configMAX_PRIORITIES-1, NULL);
