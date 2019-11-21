@@ -9,6 +9,7 @@
 
 #define ERR_CHECKOK(code) if ((code) != 0) {free(body); return -1;}
 
+
 int serialize_json(int fob_id, int fob_code, char **dst)
 {
     char *fmt = "{\"fob_id\":%d,\"fob_code\":%d}";
@@ -34,12 +35,10 @@ int server_comm_make_request(int fob_id, int fob_code)
         .auth_type = HTTP_AUTH_TYPE_BASIC
     };
 
-    esp_http_client_handle_t client;
-    client = esp_http_client_init(&config);
+    esp_http_client_handle_t client = esp_http_client_init(&config);
     if (client == NULL) {
         return -1;
     }
-
     char *body;
     int body_size = serialize_json(fob_id, fob_code, &body);
     if (body_size < 0) {
@@ -54,6 +53,7 @@ int server_comm_make_request(int fob_id, int fob_code)
 
     int status_code = esp_http_client_get_status_code(client);
     free(body);
+    esp_http_client_cleanup(client);
 
     return status_code;
 }
