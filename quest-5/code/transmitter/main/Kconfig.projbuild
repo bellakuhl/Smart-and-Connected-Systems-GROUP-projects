@@ -1,0 +1,13 @@
+menu "Fob Config"
+    config FOB_ID
+        int "Fob ID"
+        default 0
+        help
+            Fob ID
+
+    config FOB_CODE
+        int "Fob Code"
+        default 0
+        help
+            Fob Code
+endmenu
