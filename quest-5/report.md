@@ -13,7 +13,7 @@ In this quest, we implemented a device that acts as a security key fob. When a b
 
 ## Solution Design
 
-[transmitting]
+There are three key fobs that we built, each with its own user ID and access code. Each fob transmits a hex encoded code at the press of a button while also continuously receiving a LOCKED or UNLOCKED signal from the hub. The ESP RMT is used to produce a 38kHz signal that is then ANDed via a motor driver with the signal from the transmitter. This is the decoded by the IR receiver and the message is sent to the ESP. If the UNLOCKED signal is received by the fob (sent by the hub), then the green LED on the fob lights up for five seconds indicating it has unlocked and then locks again, indicated by the red LED turning on.
 
 [security hub]
 
