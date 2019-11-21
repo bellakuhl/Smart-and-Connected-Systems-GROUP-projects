@@ -18,9 +18,6 @@
 
 
 /**
-* This is an example which echos any data it receives on UART1 back to the sender,
-* with hardware flow control turned off. It does not use UART driver event queue.
-*
 * - Port: UART1
 * - Receive (Rx) buffer: on
 * - Transmit (Tx) buffer: off
@@ -37,11 +34,10 @@
 #define BUTTON_GPIO     4   // GPIO4 (A5) tactile button
 #define RED 15
 #define GREEN 32
-#define BLUE 14
 #define LOCKED_SIGNAL '3'
 #define UNLOCKED_SIGNAL '9'
 
-static unsigned char code[] = {79, 65, 19, 98};
+static unsigned char code[] = {0x1f, 0x1d, 0x07, 0xce};
 static const int RX_BUF_SIZE = 1024;
 static int flag = 0;                  // interrupt flag
 char currentMessage = LOCKED_SIGNAL;  // message number
