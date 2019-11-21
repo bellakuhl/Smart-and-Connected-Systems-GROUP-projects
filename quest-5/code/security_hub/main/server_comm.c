@@ -45,6 +45,7 @@ int server_comm_make_request(int fob_id, int fob_code)
     if (body_size < 0) {
         return body_size;
     }
+    printf("Body: %s\n", body);
 
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
@@ -54,6 +55,6 @@ int server_comm_make_request(int fob_id, int fob_code)
     int status_code = esp_http_client_get_status_code(client);
     free(body);
 
-    return status_code == 200 ? 0 : status_code;
+    return status_code;
 }
 
