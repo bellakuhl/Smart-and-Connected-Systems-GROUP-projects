@@ -37,7 +37,7 @@
 #define LOCKED_SIGNAL '3'
 #define UNLOCKED_SIGNAL '9'
 
-static unsigned char code[] = {0x1f, 0x1d, 0x07, 0xce};
+static char code[] = {0x80, 0x1f, 0x1d, 0x07, 0xce};
 static const int RX_BUF_SIZE = 1024;
 static int flag = 0;                  // interrupt flag
 char currentMessage = LOCKED_SIGNAL;  // message number
@@ -91,28 +91,6 @@ static void uart_config(void)
 }
 
 // change the LED based on LOCK/UNLOCK state
-static void switch_LED_task()
-{
-     if (currentMessage == LOCKED_SIGNAL) // while fob is locked, light red LED
-     {
-       gpio_set_level(RED, 1);
-       gpio_set_level(GREEN, 0);
-     }
-     else if (currentMessage == UNLOCKED_SIGNAL)  // when unlocked, light green LED
-     {
-       gpio_set_level(RED, 0);
-       gpio_set_level(GREEN, 1);
-     }
-}
-
-// send data to uart
-int sendData(const char* logName, const char* data)
-{
-   const int txBytes = uart_write_bytes(UART_NUM_1, code, sizeof(code));
-   ESP_LOGI(logName, "Wrote %s, %d bytes", data, txBytes);
-   return txBytes;
-}
-
 static void tx_task(void *arg)
 {
    static const char *TX_TASK_TAG = "TX_TASK";
@@ -121,7 +99,8 @@ static void tx_task(void *arg)
      vTaskDelay(100 / portTICK_RATE_MS);
      if (flag == 1)
      {
-       sendData(TX_TASK_TAG, currentMessage);
+        const int txBytes = uart_write_bytes(UART_NUM_1, code, sizeof(code));
+        ESP_LOGI(TX_TASK_TAG, "Wrote %x %x %x %x %x, %d bytes", code[0], code[1], code[2], code[3], code[4], txBytes);
      }
      flag = 0;
    }
@@ -139,17 +118,18 @@ static void rx_task(void *arg)
        uart_set_line_inverse(UART_NUM_1, UART_INVERSE_RXD); // inverse message
        if (rxBytes > 0) {
          currentMessage = data[0];  // set currentMessage
-         if (currentMessage == LOCKED_SIGNAL)
+         if (currentMessage == UNLOCKED_SIGNAL)
          {
-           switch_LED_task();
-         }
-         else if (currentMessage == UNLOCKED_SIGNAL)
-         {
-           switch_LED_task();
+           gpio_set_level(RED, 0);
+           gpio_set_level(GREEN, 1);
+
            vTaskDelay(5000 / portTICK_RATE_MS);
            currentMessage = LOCKED_SIGNAL;
-           switch_LED_task();
+
+           gpio_set_level(RED, 1);
+           gpio_set_level(GREEN, 0);
          }
+
          ESP_LOGI(RX_TASK_TAG, "Read %d bytes: %c", rxBytes, data[0]);
          ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, data, rxBytes, ESP_LOG_INFO);
        }
