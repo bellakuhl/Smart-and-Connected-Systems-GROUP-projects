@@ -1,5 +1,5 @@
 # Quest Name
-Authors: Isabella Kuhl, Laura Reeves, Joseph Rossi
+Authors: Isabella Kuhl, Laura Reeve, Joseph Rossi
 
 2019-11-20
 
