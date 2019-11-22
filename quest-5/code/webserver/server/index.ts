@@ -78,7 +78,7 @@ App.get("/fob-access/log", async function (req, resp) {
     }
 
     if (query.since && query.until && query.since > query.until) {
-        return resp.json({message: "Error - since must be earlier than until."});
+        return resp.status(422).json({message: "Error - since must be earlier than until."});
     }
 
     try {
@@ -106,7 +106,7 @@ App.get("/fob-access/authorized", RequireAuth, async function (req, resp) {
 
 
 // Only an authorized user can add a new authorized fob.
-App.post("/authorized-fobs", RequireAuth, async function (req, resp) {
+App.post("/fob-access/authorized", RequireAuth, async function (req, resp) {
     let data = req.body;
     if (!data.username || !data.fob_id || !data.fob_code) {
         return resp.status(422).json({message: "username, fob_id and fob_code are required!"});
