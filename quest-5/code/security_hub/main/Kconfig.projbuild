@@ -1,0 +1,38 @@
+menu "Security Hub Config"
+    config WIFI_SSID
+        string "WiFi SSID"
+        default "Group_15"
+        help
+            SSID (network name) to connect to.
+
+    config WIFI_PASSPHRASE
+        string "WiFi Passphrase"
+        default "smart-systems"
+        help
+            Wifi passphrase
+
+    config SERVER_HOST
+        string "Server Host"
+        default "192.168.1.108"
+        help
+            The IP address of the client running the nodejs webserver
+    
+    config SERVER_PORT
+        int "Server Port"
+        default 8080
+        help
+            Port to send UDP messages to.
+
+    config SERVER_USERNAME
+        string "Username"
+        default "sechub"
+        help
+            Username the security hub uses to make reuqests to the server
+
+    config SERVER_PASSWORD
+        string "Password"
+        default "sechub1115"
+        help
+            Password the security hub uses to make reuqests to the server
+endmenu
+
