@@ -1,3 +1,6 @@
+/* Isabella Kuhl, Laura Reeve, Joseph Rossi
+* Module for HTTP communication with the web server
+*/
 #ifndef __T15Q5_SERVER_COMM__
 #define __T15Q5_SERVER_COMM__
 
