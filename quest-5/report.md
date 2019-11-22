@@ -32,7 +32,7 @@ The web server also provides a user interface for reviewing the access logs, com
 
 <center><img src="./images/browser_screenshot.jpg" width="70%" /></center>
 
-
+> Note: For this specific implementation, I decided to use Typescript for the server implementation. When dealing with database interactions in javascript, the type annotations make it much easer to keep track of data structures than simply passing around objects without any type information. The UI uses React along with Material UI components for a more polished experience.
 
 ## Supporting Artifacts
 - [Link to repo]()
@@ -44,6 +44,9 @@ The web server also provides a user interface for reviewing the access logs, com
 * We referenced Espessif's [RMT guide](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/peripherals/rmt.html#transmit-data) to use the RMT.
 * We references Espressif's [UART guide](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/peripherals/uart.html#_CPPv415uart_read_bytes11uart_port_tP7uint8_t8uint32_t10TickType_t) to use the UART.
 -----
+* [material-ui](https://material-ui.com/)
+* [Typescript](https://www.typescriptlang.org/)
+* [React](https://www.typescriptlang.org/)
 
 ## Reminders
 
