@@ -17,6 +17,10 @@ In this quest, we implemented a device that acts as a security key fob. When a b
 
 There are three key fobs that we built, each with its own user ID and access code. Each fob transmits a hex encoded code at the press of a button while also continuously receiving a LOCKED or UNLOCKED signal from the hub. The ESP RMT is used to produce a 38kHz signal that is then ANDed via a motor driver with the signal from the transmitter. This is the decoded by the IR receiver and the message is sent to the ESP. If the UNLOCKED signal is received by the fob (sent by the hub), then the green LED on the fob lights up for five seconds indicating it has unlocked and then locks again, indicated by the red LED turning on.
 
+Here is an FSM digram detailing the fob states:
+
+<center><img src="./images/fob_state_machine.jpg" width="70%"></center>
+
 ### Security Hub
 
 The security hub is constantly looking to read bytes via UART. When it finds the start byte (0x80) that we have set, it then reads the following 4 bytes, which are parsed into the fob_id and fob_code. After this, it makes a request to the server, which responds with a status where 200 is unlocked (id-code pair is an authorized user). If it returns 200, then the security hub transmits ‘9’ to the fob. Otherwise, it transmits ‘3’ to the fob, which is translated as an error (i.e., does not unlock the fob).
