@@ -17,7 +17,7 @@ In this quest, we implemented a device that acts as a security key fob. When a b
 
 There are three key fobs that we built, each with its own user ID and access code. Each fob transmits a hex encoded code at the press of a button while also continuously receiving a LOCKED or UNLOCKED signal from the hub. The ESP RMT is used to produce a 38kHz signal that is then ANDed via a motor driver with the signal from the transmitter. This is the decoded by the IR receiver and the message is sent to the ESP. If the UNLOCKED signal is received by the fob (sent by the hub), then the green LED on the fob lights up for five seconds indicating it has unlocked and then locks again, indicated by the red LED turning on.
 
-Here is an FSM digram detailing the fob states:
+Below is an FSM digram detailing the fob states. Note that the only transition from unlocked to locked is the 5 second delay. The fob is incapable of sending or receiving messages during that time.
 
 <center><img src="./images/fob_state_machine.jpg" width="70%"></center>
 
