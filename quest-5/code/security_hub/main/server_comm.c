@@ -1,3 +1,7 @@
+/* Isabella Kuhl, Laura Reeve, Joseph Rossi
+* Module for HTTP communication with the web server
+*/
+
 #include <string.h>
 #include "esp_http_client.h"
 

@@ -1,3 +1,6 @@
+/* Isabella Kuhl, Laura Reeve, Joseph Rossi
+* Module providing HTTP API
+*/
 import http from "http";
 import path from "path";
 import express from "express";

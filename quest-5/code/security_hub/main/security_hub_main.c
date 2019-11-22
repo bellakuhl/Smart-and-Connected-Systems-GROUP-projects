@@ -1,3 +1,7 @@
+/* Isabella Kuhl, Laura Reeve, Joseph Rossi
+* Main module for the security hub
+*/
+
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
