@@ -5,6 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Security Central</title>
+    <style type="text/css">
+        body {margin: 0; padding: 0; font-family: sans-serif;}
+
+        th {cursor: pointer;}
+        .sorted:after {
+            content: ' ';
+            display: block;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            transform: translateY(-50%);
+            background-repeat: no-repeat;
+            background-position: right center;
+            background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJNdWlTdmdJY29uLXJvb3QgTXVpVGFibGVTb3J0TGFiZWwtaWNvbiBNdWlUYWJsZVNvcnRMYWJlbC1pY29uRGlyZWN0aW9uQXNjIiBmb2N1c2FibGU9ImZhbHNlIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGFyaWEtaGlkZGVuPSJ0cnVlIiByb2xlPSJwcmVzZW50YXRpb24iPjxwYXRoIGQ9Ik0yMCAxMmwtMS40MS0xLjQxTDEzIDE2LjE3VjRoLTJ2MTIuMTdsLTUuNTgtNS41OUw0IDEybDggOCA4LTh6Ii8+PC9zdmc+");
+        }
+
+        .sorted.asc:after {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        header {
+            padding: 2rem 2rem;
+            width: 100%;
+            font-size: 2rem;
+            background-color: #801429;
+            color: white;
+            border-bottom: 1px solid black
+        }
+
+        h1 {
+            font-size: 1.8rem;
+        }
+        .content {
+            padding: 2rem;
+        }
+
+        .MuiGrid-container, .MuiFormControl-root {
+            display: inline-block;
+            padding: 0;
+        }
+        .MuiFormControl-marginNormal {
+            margin: 0 !important;
+        }
+    </style>
 </head>
 <body>
     <div id="app"></div>
