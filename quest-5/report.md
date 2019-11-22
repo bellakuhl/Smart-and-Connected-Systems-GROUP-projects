@@ -13,10 +13,13 @@ In this quest, we implemented a device that acts as a security key fob. When a b
 
 ## Solution Design
 
+### Key Fobs
+
 There are three key fobs that we built, each with its own user ID and access code. Each fob transmits a hex encoded code at the press of a button while also continuously receiving a LOCKED or UNLOCKED signal from the hub. The ESP RMT is used to produce a 38kHz signal that is then ANDed via a motor driver with the signal from the transmitter. This is the decoded by the IR receiver and the message is sent to the ESP. If the UNLOCKED signal is received by the fob (sent by the hub), then the green LED on the fob lights up for five seconds indicating it has unlocked and then locks again, indicated by the red LED turning on.
 
-[security hub]
+### Security Hub
 
+The security hub is constantly looking to read bytes via UART. When it finds the start byte (0x80) that we have set, it then reads the following 4 bytes, which are parsed into the fob_id and fob_code. After this, it makes a request to the server, which responds with a status where 200 is unlocked (id-code pair is an authorized user). If it returns 200, then the security hub transmits ‘9’ to the fob. Otherwise, it transmits ‘3’ to the fob, which is translated as an error (i.e., does not unlock the fob).
 
 ### Web Sever & Database
 
@@ -36,8 +39,18 @@ The web server also provides a user interface for reviewing the access logs, com
 
 ## Supporting Artifacts
 - [Link to repo]()
-- [Link to video demo]()
+- [Link to video demo](https://drive.google.com/open?id=1TWjY5EfTLtCuoiw5XMWV_FakIIeB8yrU)
 
+## Investgative Question
+There are a lot of potential security flaws with this system in each of the three components: the fob, the security hub, and the DB.
+
+For the security of the fob, the ‘code’ that we are sending out to the security hub is unencrypted, which means that if another receiver came close to the fob and read it’s output signal, it would know what our individual code-id pair is. This means that an adversary could create their own fob with the same passcode and it would unlock under the guise of being another user.
+
+One potential problem with the security hub is that it’s only taking in the code that a user is inputting without verifying who is inputting it. Although generally not implemented in fobs, some sort of message authentication code (MAC) would help to ensure that even if the code is correct, the security hub also knows who is inputting that code — i.e., it will know which device is being held near. We alleviated this problem by only allowing unique fob_id and fob_code. This means that an adversary wouldn’t be able to make a fake fob posing as a certain user unless they knew both the id and the code. However, one problem with this is that if one tries to make a new user with an id or code that has already been taken, an error message is thrown. One could potentially find a code that is already in use and then brute force to find out whose it is. 
+
+Finally, the database has some security issues in and of itself. The messages that are transmitted from the security hub to the database are not encrypted, so an adversary could potentially intercept these communications and see user information.
+
+Two of the main concerns with a system like this one are secure transfer of data between systems and secure storage of data in the DB. We tackled the latter problem by salting and hashing the passcode using sha-256 prior to sending it to the DB; this way, even if the DB is compromised, the passcode won’t be. Data in transit between the fob and the hub could be made more secure by encrypting data before sending it. AES-256 (advanced encryption standard) is one protocol that could be used. The hub could send it’s public key and then the fob could use that to encrypt it’s passcode before sending it to the hub, which would then decrypt it using it’s secret key.
 
 ## References
 
