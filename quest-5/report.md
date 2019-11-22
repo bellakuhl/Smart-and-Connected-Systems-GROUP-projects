@@ -62,10 +62,10 @@ The web server also provides a user interface for reviewing the access logs, com
 
 <center><img src="./images/browser_screenshot.jpg" width="70%" /></center>
 
-> Note: For this specific implementation, I decided to use Typescript for the server implementation. When dealing with database interactions in javascript, the type annotations make it much easer to keep track of data structures than simply passing around objects without any type information. The UI uses React along with Material UI components for a more polished experience.
+> JR Note: For this implementation, I decided to use Typescript for the server and webpage implementation. When dealing with databases, the type annotations available in Typescript make it much easer to keep track of data structures rather than simply passing around objects without any defined type checking, or having to implement the type checks at runtime. Additionally, the UI uses React along with Material UI components for a more polished experience.
 
 ## Supporting Artifacts
-- [Link to repo]()
+- [Link to repo](https://github.com/BU-EC444/Team15-Kuhl-Reeve-Rossi/tree/master/quest-5)
 - [Link to video demo](https://drive.google.com/open?id=1TWjY5EfTLtCuoiw5XMWV_FakIIeB8yrU)
 
 ## Investgative Question
@@ -86,7 +86,7 @@ Two of the main concerns with a system like this one are secure transfer of data
 -----
 * [material-ui](https://material-ui.com/)
 * [Typescript](https://www.typescriptlang.org/)
-* [React](https://www.typescriptlang.org/)
+* [React](https://reactjs.org/)
 
 ## Reminders
 
