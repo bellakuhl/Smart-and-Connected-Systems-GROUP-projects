@@ -9,7 +9,30 @@ In this quest, we implemented a device that acts as a security key fob. When a b
 
 ## Evaluation Criteria
 
+### Fob relays {fob_ID,code} to security hub, hub sends {fob_ID,hub_ID,code} to server; server responds to fob, fob green light turns on.
 
+The fob sends out 4 bytes with the ID and code, which the hub receives and transmits to the server. The server responds whether or not the id-code pair is valid, and then the security hub transmits 9 for yes, 3 for no to the fob.
+
+### Logs fob accesses to database {fob_ID,hub_ID,person,time,location}
+
+Server logs every access to the DB. It logs who accessed, when they accessed, and which location they accessed.
+
+### Database is on RPi
+
+When we power down the RPi and power it back up, all of the logs are still persistent.
+
+### Web-based management interface shows real-time active unlocked fobs and history of unlocked fobs (with actual time of unlock). 
+
+Our web app shows a log of all unlocks by each user along with their unlock time. After 5 seconds, it 'relocks' the user out and turns off the light on the fob. So each fob is only unlocked for 5s after each unlock signal. 
+
+### Uses at least 3 fobs with unique IDs
+
+We have three fobs set up: Joe, Laura, and Bella. Each has it's own ID and code as follows:
+
+Person: {id, code}
+Joe: {4810, 6650}
+Laura: {3506, 1259}
+Bella: {7965, 1998}
 
 ## Solution Design
 
