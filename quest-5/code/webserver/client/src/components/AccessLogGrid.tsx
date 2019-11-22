@@ -9,7 +9,10 @@ import Paper from '@material-ui/core/Paper';
 import * as io from "socket.io-client";
 import axios from "axios";
 
-interface IAccessLogProps {}
+interface IAccessLogProps {
+    since: number|null;
+    until: number|null;
+}
 
 enum STATE {
     DEFAULT = 0,
@@ -55,7 +58,6 @@ interface IColumnSort {
     field: keyof IAccessLogRow;
 }
 
-
 export function AccessLogGrid(props: IAccessLogProps) {
     const classes = useStyles(undefined);
     const [state, setLoading] = React.useState<STATE>(STATE.LOADING);
@@ -64,13 +66,23 @@ export function AccessLogGrid(props: IAccessLogProps) {
 
     React.useEffect(function () {
         loadData().then(function () {
+            socket.off("access-request");
             socket.on("access-request", function (data: string) {
                 let record: IAccessLogRecord = JSON.parse(data).record;
+                if (props.since && props.since > record.time) {
+                    // too old
+                    return
+                }
+                if (props.until && props.until < record.time) {
+                    console.log("too new");
+                    return; // too new
+                }
+
                 LogStore.push(transformRecord(record));
                 setRows(LogStore.slice());
             });
         });
-    }, []);
+    }, [props]);
 
     function renderEmpty() {
         return (
@@ -94,7 +106,20 @@ export function AccessLogGrid(props: IAccessLogProps) {
     }
 
     async function loadData() {
-        let response = await axios.get("/fob-access/log");
+        let queries=[];
+        let key: keyof IAccessLogProps;
+
+        for (key in props) {
+            if (props.hasOwnProperty(key) && props[key] !== null) {
+                queries.push(`${key}=${props[key]}`)
+            }
+        }
+        let query = "";
+        if (queries.length > 0) {
+            query = "?" + queries.join("&");
+        }
+
+        let response = await axios.get("/fob-access/log" + query);
         let rows: IAccessLogRecord[] = response.data['access_log'];
         LogStore = rows.map(transformRecord);
         setRows(LogStore.slice());
