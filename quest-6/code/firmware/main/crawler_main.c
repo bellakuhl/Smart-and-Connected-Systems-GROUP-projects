@@ -11,6 +11,7 @@
 #include "driver/gpio.h"
 #include "driver/mcpwm.h"
 #include "driver/uart.h"
+#include "server_communication.h"
 
 #include "lwip/err.h"
 #include "lwip/sockets.h"
@@ -33,7 +34,6 @@
 #define SERVER_UDP_PORT CONFIG_SERVER_UDP_PORT
 
 #define UDP_RX_BUFFER_SIZE 128
-#define WIFI_ENABLED
 
 // When starting in AUTO mode, use this speed
 // as the default.
@@ -66,43 +66,6 @@ typedef struct {
 } CrawlerCmd_t;
 #pragma pack(pop)
 
-static int g_udp_send_socket;
-
-static void crawler_send_msg(const char *msg)
-{
-    char addr_str[128];
-    struct sockaddr_in destAddr;
-    destAddr.sin_addr.s_addr = inet_addr(SERVER_HOST);
-    destAddr.sin_family = AF_INET;
-    destAddr.sin_port = htons(SERVER_UDP_PORT);
-    inet_ntoa_r(destAddr.sin_addr, addr_str, sizeof(char)*128 - 1);
-
-    int err = sendto(
-        g_udp_send_socket,
-        msg,
-        strlen(msg),
-        0,
-        (struct sockaddr *)&destAddr,
-        sizeof(destAddr)
-    );
-
-    if (err < 0) {
-        ESP_LOGE(TAG, "Error sending message: %d\n", err);
-    }
-}
-
-static void crawler_log(const char *format, ...)
-{
-    char buffer[1024];
-    va_list args;
-    va_start(args, format);
-    vsprintf(buffer, format, args);
-    va_end(args);
-    ESP_LOGI(TAG, buffer);
-#ifdef WIFI_ENABLED
-    crawler_send_msg(buffer);
-#endif
-}
 
 static void crawler_stop()
 {
@@ -151,7 +114,7 @@ static void crawler_cmd_recv()
                 crawler_log("Ignoring unknown message size: %d\n", len);
                 continue;
             }
-            ESP_LOGD("Len: %d\n", len);
+            ESP_LOGD(TAG, "Len: %d\n", len);
 
             CrawlerCmd_t *data = (CrawlerCmd_t *)rx_buffer;
             crawler_log("Received Message - Cmd: %d, value %d\n", data->cmd, data->value);
@@ -280,11 +243,11 @@ void app_main()
     lidar_init(LIDAR_RIGHT_UART, LIDAR_RIGHT);
     lidar_init(LIDAR_LEFT_UART, LIDAR_LEFT);
 
-#ifdef WIFI_ENABLED
+#ifdef WIFI_ENABLED // defined in server_communication.h
     wifi_init();
     wifi_connect();
     wifi_wait_for_ip();
-    g_udp_send_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+    server_comm_init();
     crawler_log("Connected\n");
 #endif
 

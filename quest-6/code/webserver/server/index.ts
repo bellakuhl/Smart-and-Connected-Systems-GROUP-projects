@@ -99,19 +99,19 @@ App.get("/crawler-event", async function (req, resp) {
 // request.
 App.post("/crawler-event", RequireAuth, async function (req: AuthedRequest, resp) {
     let data = req.body;
-    if (!data.event_type) {
-        return resp.status(422).json({message: "event_type is required"});
+    if (!data.event) {
+        return resp.status(422).json({message: "event is required"});
     }
 
-    if (data.event_type != "START" && data.event_type != "BEACON" && data.event_type != "STOP") {
-        return resp.status(422).json({message: `Invalid event_type, must be one of: 'START', 'BEACON', 'STOP'`});
+    if (data.event != "START" && data.event != "BEACON" && data.event != "STOP") {
+        return resp.status(422).json({message: `Invalid event, must be one of: 'START', 'BEACON', 'STOP'`});
     }
 
     try {
         let record: db.ICrawlerEventRecord = {
             crawler_id: req.user.username,
             time: new Date().getTime(),
-            event: data.event_type
+            event: data.event
         };
 
         let lastRecord = await db.crawlerEvent.last(record.crawler_id);

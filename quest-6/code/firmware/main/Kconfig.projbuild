@@ -34,4 +34,16 @@ menu "Crawler Config"
         default 9000
         help
             The port on which to receive UDP messages.
+
+    config CRAWLER_USERNAME
+        string "Crawler ID"
+        default "crawler15"
+        help
+            The username the crawler uses to send messages to the server.
+
+    config CRAWLER_PASSWORD
+        string "Crawler Password"
+        default "team15lastquest"
+        help
+            The password the crawler uses to send messages to the server.
 endmenu
