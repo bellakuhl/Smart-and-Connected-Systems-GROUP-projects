@@ -145,12 +145,12 @@ static void crawler_cmd_recv()
 
 void distance_sensor_task()
 {
-    ultrasonic_serial_init();
+    lidar_init();
 
     int triggered_count = 0;
     while (1)
     {
-        float dist = ultrasonic_read_latest();
+        float dist = lidar_get_distance();
         crawler_log("Distance: %f\n", dist);
         if (dist <= 0.38f && crawler_state == CRAWL_STATE_AUTO) {
             triggered_count++;
@@ -198,31 +198,31 @@ void crawler_speed_monitor()
         vTaskDelay(period/portTICK_PERIOD_MS);
     }
 }
-#define LIDAR_RIGHT_UART UART_NUM_0
-#define LIDAR_LEFT_UART UART_NUM_2
-#define LIDAR_RIGHT GPIO_NUM_33
-#define LIDAR_LEFT  GPIO_NUM_14
+#define LIDAR_FRONT_UART UART_NUM_0
+#define LIDAR_BACK_UART UART_NUM_2
+#define LIDAR_FRONT GPIO_NUM_33
+#define LIDAR_BACK  GPIO_NUM_14
 
 void lidar_monitor()
 {
     while (1)
     {
-            uint32_t right_dist = 0;
-            uint32_t right_stren = 0;
-            uint32_t left_dist;
-            uint32_t left_stren;
+            uint32_t front_dist = 0;
+            uint32_t front_stren = 0;
+            uint32_t back_dist;
+            uint32_t back_stren;
 
-            lidar_read(LIDAR_RIGHT_UART, &right_dist, &right_stren);
-            lidar_read(LIDAR_LEFT_UART, &left_dist, &left_stren);
+            lidar_read(LIDAR_FRONT_UART, &front_dist, &front_stren);
+            lidar_read(LIDAR_BACK_UART, &back_dist, &back_stren);
 
         if (1 || crawler_state == CRAWL_STATE_AUTO)
         {
-            uint32_t diff = left_dist - right_dist;
+            uint32_t diff = back_dist - front_dist;
             int value = diff*7 + PWM_NEUTRAL_US;
             crawler_steering_set_value(value);
             crawler_log("Setting to: %.2d\n", value);
         }
-        crawler_log("Right: %.2d\tLeft: %.2d\tSteering Val: %.2d\n", right_dist, left_dist, crawler_steering_get_value());
+        crawler_log("Front: %.2d\tBack: %.2d\tSteering Val: %.2d\n", front_dist, back_dist, crawler_steering_get_value());
         //crawler_log("right: %d, left: %d\n", right_dist, left_dist);
         vTaskDelay(100/portTICK_PERIOD_MS);
     }
@@ -240,8 +240,8 @@ void app_main()
 
     pulsecounter_init();
     pulsecounter_start();
-    lidar_init(LIDAR_RIGHT_UART, LIDAR_RIGHT);
-    lidar_init(LIDAR_LEFT_UART, LIDAR_LEFT);
+    lidar_init(LIDAR_FRONT_UART, LIDAR_FRONT);
+    lidar_init(LIDAR_BACK_UART, LIDAR_BACK);
 
 #ifdef WIFI_ENABLED // defined in server_communication.h
     wifi_init();
