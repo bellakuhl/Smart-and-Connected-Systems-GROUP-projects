@@ -51,6 +51,7 @@ enum CrawlerCommands {
 
 typedef enum {
     CRAWL_STATE_AUTO,
+    CRAWL_STATE_MANUAL,
     CRAWL_STATE_STOPPED
 } CrawlerState_t;
 
@@ -117,7 +118,8 @@ static void crawler_cmd_recv()
             ESP_LOGD(TAG, "Len: %d\n", len);
 
             CrawlerCmd_t *data = (CrawlerCmd_t *)rx_buffer;
-            crawler_log("Received Message - Cmd: %d, value %d\n", data->cmd, data->value);
+            crawler_log("Received Message - Cmd: %d, value %d\n",
+                         data->cmd, data->value);
             switch(data->cmd) {
                 case CMD_ESC:
                     mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER, MCPWM_OPR_A, data->value);

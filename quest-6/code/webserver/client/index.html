@@ -6,8 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>EC444 Crawler Rollup</title>
     <style type="text/css">
-        body {margin: 0; padding: 0; font-family: sans-serif;}
-
+        body {margin: 0; padding: 0; font-family: sans-serif; box-sizing: border-box; overflow-x: hidden;}
+        * {box-sizing: border-box;}
         th {cursor: pointer;}
         .sorted:after {
             content: ' ';
@@ -28,16 +28,16 @@
         }
 
         header {
-            padding: 2rem 2rem;
+            padding: 0.25rem 2rem;
             width: 100%;
-            font-size: 2rem;
+            font-size: 1rem;
             background-color: #801429;
             color: white;
             border-bottom: 1px solid black
         }
 
         h1 {
-            font-size: 1.8rem;
+            font-size: 1.4rem;
         }
         .content {
             padding: 2rem;
@@ -50,6 +50,60 @@
         .MuiFormControl-marginNormal {
             margin: 0 !important;
         }
+
+        .crawler-log {
+            border: thin solid black;
+            height: 150px;
+            overflow: auto;
+        }
+        .crawler-steering {
+            display: block;
+            border: 1px solid red;
+            width: 300px;
+            position: relative;
+            height: 150px;
+        }
+        .crawler-steering:before {
+            display: block;
+            content: ' ';
+            position: absolute;
+            width: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+            bottom: 0;
+            background-color: gray;
+        }
+
+        .MuiPaper-elevation1 {
+            box-shadow: none !important;
+        }
+
+        .steering-label {
+            position: absolute; top: 0; bottom: 0;
+            width: 100px;
+            vertical-align: middle;
+        }
+
+        .steering-label:before {
+            display: block;
+            transform: translateY(-50%);
+            position: absolute;
+            top: 50%;
+            text-align: center;
+            width: 100%;
+        }
+
+        .steering-label.left { left: 0; }
+        .steering-label.left:before { content: "Left"; }
+        .steering-label.right { right: 0; }
+        .steering-label.right:before { content: "Right"; }
+        .steering-label.center { right: 0; left: 100px; }
+        .steering-label.center:before { content: "Center"; }
+
+        .makeStyles-paper-2 { padding: 8px !important;}
+        table {width: 100%; padding: 0.25em 0;}
+        table td { padding: 0.25em;}
     </style>
 </head>
 <body>

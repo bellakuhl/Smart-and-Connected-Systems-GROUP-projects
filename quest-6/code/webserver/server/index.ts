@@ -138,7 +138,7 @@ interface ICralwerCommand {
 const CRAWLER_IP = "192.168.1.144";
 const CRAWLER_PORT = 9000;
 
-enum CrawlerCommand {
+export enum CrawlerCommand {
     CMD_ESC = 0,
     CMD_STEERING = 1,
     CMD_START_AUTO = 2,
@@ -190,6 +190,11 @@ App.post("/crawler-command/stop", function (request, response) {
         response.status(500).send("Error sending stop command.");
     });
 });
+
+interface ICralwerForwardCommandReq {
+    milliseconds?: number;
+    speed?: number;
+}
 
 App.post("/crawler-command/control", function (request, response) {
     const body = request.body;
