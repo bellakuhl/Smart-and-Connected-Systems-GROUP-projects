@@ -32,6 +32,7 @@ export function CrawlCam() {
         }, 200);
 
         // JR - Debug
+        /*
         let count = -1;
         let timeout = -1;
         (function drawImage () {
@@ -45,10 +46,10 @@ export function CrawlCam() {
             img.onload = function () { timeout = setTimeout(drawImage, 2000); };
             img.src = url;
         }());
+        */
 
         return () => {
             clearInterval(interval);
-            clearTimeout(timeout);
         }
     }, []);
 
