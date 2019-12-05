@@ -23,6 +23,7 @@
 #include "pulse_counter.h"
 #include "ultrasonic.h"
 #include "lidar.h"
+#include "lidarlite.h"
 #include "wifi.h"
 
 // This wheel diameter, used to calculate the wheel
@@ -147,12 +148,12 @@ static void crawler_cmd_recv()
 
 void distance_sensor_task()
 {
-    lidar_init();
+    lidar_lite_init();
 
     int triggered_count = 0;
     while (1)
     {
-        float dist = lidar_get_distance();
+        float dist = lidar_lite_get_distance();
         crawler_log("Distance: %f\n", dist);
         if (dist <= 0.38f && crawler_state == CRAWL_STATE_AUTO) {
             triggered_count++;

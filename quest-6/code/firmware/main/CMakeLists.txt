@@ -5,6 +5,7 @@ set(COMPONENT_SRCS
     "pulse_counter.c"
     "pid_control.c"
     "lidar.c"
+    "lidarlite.c"
     "ultrasonic.c"
     "server_communication.c"
     "crawler_main.c")

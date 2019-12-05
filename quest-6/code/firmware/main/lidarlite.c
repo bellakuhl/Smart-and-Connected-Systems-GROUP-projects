@@ -146,7 +146,7 @@ uint8_t readRegister(uint8_t reg) {
 ////////////////////////////////////////////////////////////////////////////////
 
 // function to get distance
-void getDist() {
+float lidar_lite_get_distance() {
   printf("Reading\n");
   
   writeRegister(0x00, 0x04); // Write 0x04 to 0x00
@@ -156,11 +156,11 @@ void getDist() {
   uint16_t distance = low_byte | (high_byte<<8);
   
   //printf("%.2d\n", (distance) );
-  return distance
+  return distance;
 }
 
 
-
+/*
 static void distance() {
   printf("\nTesting\n");
   //writeRegister(0x00, 0x04); // Write 0x04 to 0x00
@@ -170,7 +170,7 @@ static void distance() {
     vTaskDelay(1000 / portTICK_RATE_MS);
   }
 }
-
+*/
 /*
 void app_main() {
 
@@ -184,7 +184,7 @@ void app_main() {
 }
 */
 
-void lidar_init(){
+void lidar_lite_init(){
 
   i2c_master_init();
   i2c_scanner();
