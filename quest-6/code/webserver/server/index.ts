@@ -3,7 +3,7 @@
 */
 import http from "http";
 import path from "path";
-import express from "express";
+import express, { response } from "express";
 import io from "socket.io";
 import * as db from "./database";
 import dgram from "dgram";
@@ -222,6 +222,34 @@ App.post("/crawler-command/control", function (request, response) {
     }
     else {
         response.status(422).send("Invalid control param.");
+    }
+});
+
+// QR Code Scanner
+import Jimp from "jimp";
+import * as fs from "fs";
+const QRCode = require("qrcode-reader");
+
+App.post("/scan-qr-code", async function (req, resp) {
+    //TODO: Set this to be the raspberry pi path.
+    let filepath = "/Users/jrossi/Downloads/qrcodes/4.png";
+
+    try {
+        let image = await Jimp.read(fs.readFileSync(filepath));
+        let qr =new QRCode();
+        qr.callback = function (err: string, value: any) {
+            if (err) {
+                console.error("Error reading qr code: ", err);
+                resp.status(500).send({message: err});
+                return;
+            }
+            console.log(value);
+            resp.status(200).json(value);
+        };
+        qr.decode(image.bitmap);
+    } catch(err) {
+        console.error("Error parsing image: ", err);
+        resp.status(500).send({message: err});
     }
 });
 

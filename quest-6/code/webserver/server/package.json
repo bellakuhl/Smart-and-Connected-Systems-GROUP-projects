@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
+    "jimp": "^0.5.4",
+    "qrcode-reader": "^1.0.4",
     "socketio": "^1.0.0",
     "tingodb": "^0.6.1"
   },
