@@ -160,6 +160,9 @@ const PWM_MIN = 900;
 const PWM_NEUTRAL = 1500;
 const PWM_MAX = 2400;
 
+let LAST_ESC_VALUE = PWM_NEUTRAL;
+let LAST_STEER_VALUE = PWM_NEUTRAL;
+
 function send_command(command: CrawlerCommand, value: number) {
     var data = {command: command, value: value};
     return new Promise(function (resolve, reject) {
@@ -169,11 +172,26 @@ function send_command(command: CrawlerCommand, value: number) {
                 reject("Error setting value.");
             }
             else {
+                if (command == CrawlerCommand.CMD_ESC) {
+                    LAST_ESC_VALUE = value;
+                }
+
+                if (command == CrawlerCommand.CMD_STEERING) {
+                    LAST_STEER_VALUE = value;
+                }
+
                 resolve(value);
             }
         });
     });
 }
+
+App.get("/crawler/state", function (request, response) {
+    response.status(200).json({
+        esc: LAST_ESC_VALUE,
+        steering: LAST_STEER_VALUE
+    });
+});
 
 App.post("/crawler-command/start-auto", function (request, response) {
     send_command(CrawlerCommand.CMD_START_AUTO, 0).then(function (value) {

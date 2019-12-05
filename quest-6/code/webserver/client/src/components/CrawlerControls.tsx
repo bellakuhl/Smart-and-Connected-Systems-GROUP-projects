@@ -7,11 +7,12 @@ interface ICrawlerControlProps {
 
 }
 
+
 function sendCommandButton(endpoint: string, body?: any)
 {
     return async function () {
         const url = window.location.origin + "/crawler-command" + endpoint;
-        await axios.post(url, body);
+        return await axios.post(url, body);
     };
 }
 
@@ -19,44 +20,75 @@ const PWM_MIN = 900;
 const PWM_NEUTRAL = 1500;
 const PWM_MAX = 2400;
 
+let steeringValue: number = PWM_NEUTRAL;
+let escValue: number = PWM_NEUTRAL;
+
 export function CrawlerControls(props: ICrawlerControlProps) {
     let steeringDiv: Element;
 
-    function escForward() {
-        console.log("forward");
-        axios.post("/crawler-command/control", {
-            param: "esc",
-            value: 1450
-        });
-    }
+    async function postESCValue(value: number) {
+        try {
+            await sendCommandButton("/control", {
+                param: "esc",
+                value: value
+            })();
 
-    function escBackward() {
-        axios.post("/crawler-command/control", {
-            param: "esc",
-            value: 1650
-        });
+            escValue = value;
+        } catch(err) {
+            console.log("Error updating esc.");
+        }
+    }
+    async function postSteeringValue(value: number) {
+        try {
+            await sendCommandButton("/control", {
+                param: "steering",
+                value: value
+            })();
+
+            steeringValue = value;
+        } catch(err) {
+            console.log("Error updating steering.");
+        }
     }
 
     function escStop() {
-        axios.post("/crawler-command/control", {
-            param: "esc",
-            value: PWM_NEUTRAL
-        });
+        postESCValue(PWM_NEUTRAL);
     }
 
     React.useEffect(function () {
+        axios.get("/crawler/state").then(function (resp) {
+            steeringValue = resp.data['steering'];
+            escValue = resp.data['esc'];
+        }).catch ((err) => {
+            console.error(`Error getting esc state: ${err}`);
+        });
+
         window.addEventListener("keypress", function (evt: KeyboardEvent) {
             if (evt.key == "f") {
                 evt.preventDefault();
-                escForward();
+                postESCValue(1450);
             }
             else if (evt.key == "b" || evt.key == "r") {
                 evt.preventDefault();
-                escBackward();
+                postESCValue(1650);
             }
             else if (evt.key == " " || evt.key == "s") {
                 evt.preventDefault();
                 escStop();
+            }
+        });
+
+        window.addEventListener("keydown", function (evt) {
+            if (evt.key == "ArrowLeft") {
+                postSteeringValue(Math.min(steeringValue + 60, PWM_MAX));
+            }
+
+            if (evt.key == "ArrowRight") {
+                postSteeringValue(Math.max(steeringValue - 60, PWM_MIN));
+            }
+
+            if (evt.key == "ArrowUp") {
+                postSteeringValue(PWM_NEUTRAL);
             }
         });
     }, []);
@@ -76,7 +108,7 @@ export function CrawlerControls(props: ICrawlerControlProps) {
 
             let rightRange = PWM_NEUTRAL - PWM_MIN;
             let right = PWM_NEUTRAL - rightRange*rightPct;
-            axios.post("/crawler-command/control", {param: "steering", value: right});
+            postSteeringValue(right);
         }
         else if (evt.clientX < centerRegion[0]) {
             let leftStart = rect.x + (rect.width/2) - (steerRegionWidth/2);
@@ -85,12 +117,10 @@ export function CrawlerControls(props: ICrawlerControlProps) {
             let leftRange = PWM_MAX - PWM_NEUTRAL;
             let left = PWM_NEUTRAL + leftRange*leftPct;
             axios.post("/crawler-command/control", {param: "steering", value: left});
+            postSteeringValue(left);
         }
         else {
-            axios.post("/crawler-command/control", {
-                param: "steering",
-                value: PWM_NEUTRAL
-            });
+            postSteeringValue(PWM_NEUTRAL);
         }
     }
 
