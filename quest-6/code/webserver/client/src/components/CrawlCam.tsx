@@ -15,9 +15,12 @@ export function CrawlCam() {
         const ctx = canvas.getContext("2d");
         let interval = setInterval(function () {
             if (!img || !imageLoaded) { return; } // Not ready
-
             const width = img.getBoundingClientRect().width;
             const height = img.getBoundingClientRect().height;
+            if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+                var aux = img.src.split('?killcache=');
+                img.src = aux[0] + '?killcache=' + Math.floor(42 * Math.random());
+            }
 
             canvas.width =  width;
             canvas.height = height;
@@ -26,8 +29,7 @@ export function CrawlCam() {
             let imageData = ctx.getImageData(0, 0, width, height);
             let code = jsQR(imageData.data, width, height);
             if (code) {
-                let num = img.src.substr(-5);
-                setScanResult(`Scan result (${num}): ${code.data}`);
+                setScanResult(`Code: ${code.data}`);
             }
         }, 200);
 
@@ -56,7 +58,8 @@ export function CrawlCam() {
     return (
         <div>
             <img src="http://192.168.1.131:8081/stream"
-                width="300px" height="300px"
+                crossOrigin="anonymous"
+                width="544px" height="288px"
                 ref={(el) => img = el}
                 onLoad={() => imageLoaded = true }/>
             {/* <img src="/qrcodes/1.png"
