@@ -95,30 +95,23 @@ App.get("/crawler-event", async function (req, resp) {
     }
 });
 
-// Only an authorized user (i.e. security hub) can try to authroize a hub
-// request.
+// Only an authorized crawler can log events.
 App.post("/crawler-event", RequireAuth, async function (req: AuthedRequest, resp) {
     let data = req.body;
     if (!data.event) {
         return resp.status(422).json({message: "event is required"});
     }
 
-    if (data.event != "START" && data.event != "BEACON" && data.event != "STOP") {
-        return resp.status(422).json({message: `Invalid event, must be one of: 'START', 'BEACON', 'STOP'`});
-    }
-
     try {
         let record: db.ICrawlerEventRecord = {
             crawler_id: req.user.username,
             time: new Date().getTime(),
-            event: data.event
+            event: data.event,
+            split_time: data.split_time
         };
 
-        let lastRecord = await db.crawlerEvent.last(record.crawler_id);
         let rec = await db.crawlerEvent.insert(record);
-        let splitTime = lastRecord == null || lastRecord.event == "STOP" ? -1 : rec.time - lastRecord.time;
-
-        resp.status(200).json(splitTime);
+        resp.status(200).json();
         WebSocket.emit(WEBSOCKET_EVENT.CRAWLER_EVENT, JSON.stringify({record: rec}));
     }
     catch(err) {
