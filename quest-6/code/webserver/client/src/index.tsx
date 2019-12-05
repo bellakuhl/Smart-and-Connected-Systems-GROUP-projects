@@ -4,6 +4,14 @@ import * as ReactDOM from "react-dom";
 import {Header} from "./components/Header";
 import {AccessLogGrid} from "./components/AccessLogGrid";
 import {DatePicker} from "./components/DatePicker";
+import {DebugLog} from "./components/DebugLog";
+import {CrawlerControls} from "./components/CrawlerControls";
+import {CrawlCam} from "./components/CrawlCam";
+
+import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
+import Grid from "@material-ui/core/Grid";
+import Paper from '@material-ui/core/Paper';
+import Button from "@material-ui/core/Button";
 
 function setHash(props: any) : void {
     let values = [];
@@ -52,6 +60,18 @@ function parseHash(): any {
 
 let URLState: any = {};
 
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    root: {
+      flexGrow: 1,
+    },
+    paper: {
+      padding: theme.spacing(2),
+      color: theme.palette.text.secondary,
+    },
+  }),
+);
+
 function App() {
     URLState = parseHash();
     let defaultSince = URLState.since ? parseInt(URLState.since, 10) : null;
@@ -68,6 +88,7 @@ function App() {
         setHash(URLState);
         setSince(date.getTime());
     }
+
     function updateUntil(date: Date) {
         date.setHours(23);
         date.setMinutes(59);
@@ -77,13 +98,40 @@ function App() {
         setUntil(date.getTime());
     }
 
+
+    const classes = useStyles({});
+
     return (<div>
         <Header />
-        <div className="content">
-            <h2>Crawler Event Log</h2>
-            <DatePicker label="Since" onChange={updateSince} defaultDate={since} />
-            <DatePicker label="Until" onChange={updateUntil} defaultDate={until} />
-            <AccessLogGrid since={since} until={until} />
+        <div className={classes.root}>
+            <Grid container spacing={3}>
+                <Grid item xs={6}>
+                    <Paper className={classes.paper}>
+                        <h2>CrawlCam<sup>&trade;</sup></h2>
+                        <CrawlCam />
+                    </Paper>
+                </Grid>
+                <Grid item xs={6}>
+                    <Paper className={classes.paper}>
+                        <h2>Crawler Controls</h2>
+                        <CrawlerControls />
+                    </Paper>
+                </Grid>
+                <Grid item xs={6}>
+                    <div className={classes.paper}>
+                        <h2>Events</h2>
+                        {/* <DatePicker label="Since" onChange={updateSince} defaultDate={since} />
+                        <DatePicker label="Until" onChange={updateUntil} defaultDate={until} /> */}
+                        <AccessLogGrid since={since} until={until} />
+                    </div>
+                </Grid>
+                <Grid item xs={6}>
+                    <Paper className={classes.paper}>
+                        <h2>Log</h2>
+                        <DebugLog />
+                    </Paper>
+                </Grid>
+            </Grid>
         </div>
     </div>);
 }

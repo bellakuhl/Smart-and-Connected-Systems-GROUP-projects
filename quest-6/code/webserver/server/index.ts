@@ -3,7 +3,7 @@
 */
 import http from "http";
 import path from "path";
-import express from "express";
+import express, { response } from "express";
 import io from "socket.io";
 import * as db from "./database";
 import dgram from "dgram";
@@ -16,6 +16,7 @@ const UDP_Socket = dgram.createSocket("udp4");
 App.use("/static", express.static("static"));
 App.use("/node_modules", express.static("node_modules"));
 App.use("/client", express.static(path.join(__dirname, "../client")));
+App.use("/qrcodes", express.static("/Users/jrossi/Downloads/qrcodes"));
 App.use(express.json());
 
 /**
@@ -95,30 +96,23 @@ App.get("/crawler-event", async function (req, resp) {
     }
 });
 
-// Only an authorized user (i.e. security hub) can try to authroize a hub
-// request.
+// Only an authorized crawler can log events.
 App.post("/crawler-event", RequireAuth, async function (req: AuthedRequest, resp) {
     let data = req.body;
     if (!data.event) {
         return resp.status(422).json({message: "event is required"});
     }
 
-    if (data.event != "START" && data.event != "BEACON" && data.event != "STOP") {
-        return resp.status(422).json({message: `Invalid event, must be one of: 'START', 'BEACON', 'STOP'`});
-    }
-
     try {
         let record: db.ICrawlerEventRecord = {
             crawler_id: req.user.username,
             time: new Date().getTime(),
-            event: data.event
+            event: data.event,
+            split_time: data.split_time
         };
 
-        let lastRecord = await db.crawlerEvent.last(record.crawler_id);
         let rec = await db.crawlerEvent.insert(record);
-        let splitTime = lastRecord == null || lastRecord.event == "STOP" ? -1 : rec.time - lastRecord.time;
-
-        resp.status(200).json(splitTime);
+        resp.status(200).json();
         WebSocket.emit(WEBSOCKET_EVENT.CRAWLER_EVENT, JSON.stringify({record: rec}));
     }
     catch(err) {
@@ -145,7 +139,7 @@ interface ICralwerCommand {
 const CRAWLER_IP = "192.168.1.144";
 const CRAWLER_PORT = 9000;
 
-enum CrawlerCommand {
+export enum CrawlerCommand {
     CMD_ESC = 0,
     CMD_STEERING = 1,
     CMD_START_AUTO = 2,
@@ -166,6 +160,9 @@ const PWM_MIN = 900;
 const PWM_NEUTRAL = 1500;
 const PWM_MAX = 2400;
 
+let LAST_ESC_VALUE = PWM_NEUTRAL;
+let LAST_STEER_VALUE = PWM_NEUTRAL;
+
 function send_command(command: CrawlerCommand, value: number) {
     var data = {command: command, value: value};
     return new Promise(function (resolve, reject) {
@@ -175,11 +172,26 @@ function send_command(command: CrawlerCommand, value: number) {
                 reject("Error setting value.");
             }
             else {
+                if (command == CrawlerCommand.CMD_ESC) {
+                    LAST_ESC_VALUE = value;
+                }
+
+                if (command == CrawlerCommand.CMD_STEERING) {
+                    LAST_STEER_VALUE = value;
+                }
+
                 resolve(value);
             }
         });
     });
 }
+
+App.get("/crawler/state", function (request, response) {
+    response.status(200).json({
+        esc: LAST_ESC_VALUE,
+        steering: LAST_STEER_VALUE
+    });
+});
 
 App.post("/crawler-command/start-auto", function (request, response) {
     send_command(CrawlerCommand.CMD_START_AUTO, 0).then(function (value) {
@@ -197,6 +209,11 @@ App.post("/crawler-command/stop", function (request, response) {
         response.status(500).send("Error sending stop command.");
     });
 });
+
+interface ICralwerForwardCommandReq {
+    milliseconds?: number;
+    speed?: number;
+}
 
 App.post("/crawler-command/control", function (request, response) {
     const body = request.body;
@@ -224,6 +241,35 @@ App.post("/crawler-command/control", function (request, response) {
     }
     else {
         response.status(422).send("Invalid control param.");
+    }
+});
+
+// QR Code Scanner
+import Jimp from "jimp";
+import * as fs from "fs";
+const QRCode = require("qrcode-reader");
+
+App.post("/scan-qr-code", async function (req, resp) {
+
+    // let filepath = "/Users/jrossi/Downloads/qrcodes/13.jpg";
+    let filepath = "/home/pi/webcam/webcam-image.jpg";
+
+    try {
+        let image = await Jimp.read(fs.readFileSync(filepath));
+        let qr =new QRCode();
+        qr.callback = function (err: string, value: any) {
+            if (err) {
+                console.error("Error reading qr code: ", err);
+                resp.status(500).send({message: err});
+                return;
+            }
+            console.log(value);
+            resp.status(200).json(value);
+        };
+        qr.decode(image.bitmap);
+    } catch(err) {
+        console.error("Error parsing image: ", err);
+        resp.status(500).send({message: err});
     }
 });
 

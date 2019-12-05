@@ -1,7 +1,10 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/index.tsx',
+  mode: "development",
+  entry: {
+    main: './src/index.tsx'
+  },
   devtool: 'source-map',
   module: {
     rules: [
@@ -21,12 +24,26 @@ module.exports = {
     extensions: [ '.tsx', '.ts', '.js' ],
   },
   output: {
-    filename: 'main.js',
-      path: path.resolve(__dirname, './dist'),
+    filename: '[name].js',
+    path: path.resolve(__dirname, './dist'),
   },
   externals: {
     "react": "React",
-    "react-dom": "ReactDOM"
+    "react-dom": "ReactDOM",
+    "socket.io": "socket.io",
+    "axios": "axios"
+  },
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        default: false,
+        vendors: false,
+        materialui: {
+          chunks: 'all',
+          test: /node_modules\/@material-ui/
+        }
+      }
+    }
   }
 };
 

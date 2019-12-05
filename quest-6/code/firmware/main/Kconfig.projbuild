@@ -13,7 +13,7 @@ menu "Crawler Config"
 
     config SERVER_HOST
         string "Server Host"
-        default "192.168.1.108"
+        default "192.168.1.131"
         help
             The IP address of the client running the nodejs webserver
 

@@ -19,12 +19,12 @@ enum STATE {
     LOADING = 1
 }
 
-type CrawlerEvent = "START" | "BEACON" | "STOP";
 
 export interface ICrawlerEventRecord {
     time: number;
     crawler_id: string;
-    event: CrawlerEvent;
+    event: string;
+    split_time: number;
 }
 
 interface ICrawlerEventRow extends ICrawlerEventRecord {
@@ -181,16 +181,18 @@ export function AccessLogGrid(props: ICrawlerEventProps) {
                             <TableCell key="time"onClick={createSortFunction("time")} className={sortClasses("time")}>Date</TableCell>
                             <TableCell onClick={createSortFunction("crawler_id")} className={sortClasses("crawler_id")}>Crawler ID</TableCell>
                             <TableCell onClick={createSortFunction("event")} className={sortClasses("event")}>Event</TableCell>
+                            <TableCell onClick={createSortFunction("split_time")} className={sortClasses("split_time")}>Split Time</TableCell>
                         </TableRow>
                         </TableHead>
                         <TableBody>
                         {rows.map(row => (
                             <TableRow key={row.time}>
-                            <TableCell component="th" scope="row">
-                                {row.date.toLocaleDateString()} {row.date.toLocaleTimeString()}
-                            </TableCell>
-                            <TableCell>{row.crawler_id}</TableCell>
-                            <TableCell>{row.event}</TableCell>
+                                <TableCell component="th" scope="row">
+                                    {row.date.toLocaleDateString()} {row.date.toLocaleTimeString()}
+                                </TableCell>
+                                <TableCell>{row.crawler_id}</TableCell>
+                                <TableCell>{row.event}</TableCell>
+                                <TableCell>{row.split_time}</TableCell>
                             </TableRow>
                         ))}
                         </TableBody>

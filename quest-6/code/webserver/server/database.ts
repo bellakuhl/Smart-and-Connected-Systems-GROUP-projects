@@ -13,18 +13,18 @@ const DB = new Engine.Db(DATABASE_FOLDER, {});
 const COLLECTION_NAMES = ["CrawlerEvent", "SuperUser"];
 export const collections: {[key: string]: any} = {};
 
-type CrawlerEvent = "START" | "BEACON" | "STOP";
-
 export interface ICrawlerEventRecord {
     time: number;
     crawler_id: string;
-    event: CrawlerEvent;
+    event: string;
+    split_time: number;
 }
 
 export interface ICrawlerEventQuery {
-    time?: number | any;
+    time?: number | any; // any type for composing mongodb-like queries on field.
     crawler_id?: string;
-    event?: CrawlerEvent;
+    event?: string;
+    split_time?: number;
 }
 
 export interface ISuperUser {
@@ -76,7 +76,7 @@ type cbError = Error|null;
 
 function  queryCrawlerEvent(query: ICrawlerEventQuery)
 {
-    return new Promise<ICrawlerEventQuery[]>(function (resolve, reject) {
+    return new Promise<ICrawlerEventRecord[]>(function (resolve, reject) {
         collections['CrawlerEvent'].find(query).toArray(function (err: cbError, data: ICrawlerEventRecord[]) {
             if (err) {
                 reject(err);
