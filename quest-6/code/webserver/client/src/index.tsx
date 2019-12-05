@@ -6,6 +6,7 @@ import {AccessLogGrid} from "./components/AccessLogGrid";
 import {DatePicker} from "./components/DatePicker";
 import {DebugLog} from "./components/DebugLog";
 import {CrawlerControls} from "./components/CrawlerControls";
+import {CrawlCam} from "./components/CrawlCam";
 
 import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 import Grid from "@material-ui/core/Grid";
@@ -78,7 +79,6 @@ function App() {
 
     const [since, setSince] = React.useState<number|null>(defaultSince);
     const [until, setUntil] = React.useState<number|null>(defaultUntil);
-    const [scanResult, setScanResult] = React.useState<string>("");
 
     function updateSince(date: Date) {
         date.setHours(0);
@@ -88,6 +88,7 @@ function App() {
         setHash(URLState);
         setSince(date.getTime());
     }
+
     function updateUntil(date: Date) {
         date.setHours(23);
         date.setMinutes(59);
@@ -97,14 +98,6 @@ function App() {
         setUntil(date.getTime());
     }
 
-    async function scanImage () {
-        try {
-            let resp = await axios.post("/scan-qr-code");
-            setScanResult("Scan result: " + resp.data['result']);
-        } catch (xhr) {
-            setScanResult("QR Code could not be decoded.");
-        }
-    }
 
     const classes = useStyles({});
 
@@ -115,15 +108,7 @@ function App() {
                 <Grid item xs={6}>
                     <Paper className={classes.paper}>
                         <h2>CrawlCam<sup>&trade;</sup></h2>
-                        <iframe src="http://localhost:8081" width="100%" height="300px"></iframe>
-                        <Grid container>
-                            <Grid item xs={8}>
-                                <p>{scanResult}</p>
-                            </Grid>
-                            <Grid item xs={4}>
-                                <Button variant="contained" onClick={scanImage}>Scan Code</Button>
-                            </Grid>
-                        </Grid>
+                        <CrawlCam />
                     </Paper>
                 </Grid>
                 <Grid item xs={6}>
@@ -135,8 +120,8 @@ function App() {
                 <Grid item xs={6}>
                     <div className={classes.paper}>
                         <h2>Events</h2>
-                        <DatePicker label="Since" onChange={updateSince} defaultDate={since} />
-                        <DatePicker label="Until" onChange={updateUntil} defaultDate={until} />
+                        {/* <DatePicker label="Since" onChange={updateSince} defaultDate={since} />
+                        <DatePicker label="Until" onChange={updateUntil} defaultDate={until} /> */}
                         <AccessLogGrid since={since} until={until} />
                     </div>
                 </Grid>

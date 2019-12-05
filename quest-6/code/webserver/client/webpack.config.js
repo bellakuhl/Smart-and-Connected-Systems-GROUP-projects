@@ -38,10 +38,6 @@ module.exports = {
       cacheGroups: {
         default: false,
         vendors: false,
-        dateio: {
-          chunks: 'all',
-          test: /node_modules\/(@date-io|date-fns)/
-        },
         materialui: {
           chunks: 'all',
           test: /node_modules\/@material-ui/

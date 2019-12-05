@@ -16,6 +16,7 @@ const UDP_Socket = dgram.createSocket("udp4");
 App.use("/static", express.static("static"));
 App.use("/node_modules", express.static("node_modules"));
 App.use("/client", express.static(path.join(__dirname, "../client")));
+App.use("/qrcodes", express.static("/Users/jrossi/Downloads/qrcodes"));
 App.use(express.json());
 
 /**
@@ -231,8 +232,9 @@ import * as fs from "fs";
 const QRCode = require("qrcode-reader");
 
 App.post("/scan-qr-code", async function (req, resp) {
-    //TODO: Set this to be the raspberry pi path.
-    let filepath = "/Users/jrossi/Downloads/qrcodes/4.png";
+
+    // let filepath = "/Users/jrossi/Downloads/qrcodes/13.jpg";
+    let filepath = "/home/pi/webcam/webcam-image.jpg";
 
     try {
         let image = await Jimp.read(fs.readFileSync(filepath));
