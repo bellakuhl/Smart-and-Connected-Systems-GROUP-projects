@@ -25,7 +25,7 @@
 #define RXD_PIN (GPIO_NUM_25)
 #define TXD_PIN (GPIO_NUM_12)
 
-static const int RX_BUF_SIZE = 1024;
+static const int RX_BUF_SIZE = 256;
 
 static QueueHandle_t msgQueue = NULL;
 
@@ -90,15 +90,12 @@ void beacon_rx_task(void *arg)
    while (1)
    {
         const int rxBytes = uart_read_bytes(
-            UART_NUM_1, data, RX_BUF_SIZE, 200 / portTICK_RATE_MS);
+            UART_NUM_1, data, RX_BUF_SIZE, 100 / portTICK_RATE_MS);
 
         if (rxBytes > 0) {
-            //  ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, data, rxBytes, ESP_LOG_INFO);
-
             for (int i = 0; i < rxBytes; i++) {
                 if (data[i] == 0x1B && msgQueue != NULL) {
                     BeaconMsg_t msg = { .color=data[i+1], .id=data[i+2] };
-                    crawler_log("Queing message");
                     BaseType_t res = xQueueSendToBack(msgQueue, &msg, 5);
                     if (res != pdTRUE) {
                         crawler_log("Error queing beacon message: %d", res);

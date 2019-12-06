@@ -110,7 +110,6 @@ static void crawler_speed_monitor()
     crawler_current_speed *= crawler_get_direction();
     alphadisplay_write_float(crawler_current_speed);
     last_pulse_count = current_pulse_count;
-    vTaskDelay(period/portTICK_PERIOD_MS);
 }
 
 #define LIDAR_FRONT_UART UART_NUM_0
@@ -135,16 +134,21 @@ static bool should_turn_left()
 static int reading_count = 0;
 static void update_sensor_readings()
 {
-    distance_sensor_task();
-    crawler_speed_monitor();
-    side_distance_monitor();
+    while (1)
+    {
+        distance_sensor_task();
+        crawler_speed_monitor();
+        side_distance_monitor();
 
-    reading_count = (reading_count + 1) % 5;
-    if (reading_count == 0) {
-        crawler_log("Front: %.2d\tBack: %.2d\tSteering Val: %.2d\n",
+        reading_count = (reading_count + 1) % 10;
+        if (reading_count == 0) {
+            crawler_log("Front: %.2d\tBack: %.2d\tSteering Val: %.2d",
                         right_side_front_dist, right_side_rear_dist, crawler_steering_get_value());
-        crawler_log("PC: %d, LPC: %d, Delta: %d, Total: %.2f\n", current_pulse_count, last_pulse_count,  total_revolutions);
-        crawler_log("Lidar Lite: %.2f\n", collision_dist);
+            crawler_log("PC: %d, LPC: %d, Delta: %d, Total: %.2f", current_pulse_count, last_pulse_count,  total_revolutions);
+            crawler_log("Lidar Lite: %.2f\n", collision_dist);
+        }
+
+        vTaskDelay(100/portTICK_PERIOD_MS);
     }
 }
 
@@ -153,18 +157,17 @@ static void crawl_autonomous_task()
     PID_set_setpoint(0.3);
     crawler_esc_set_value(CRAWLER_START_PWM);
 
-    crawler_auto_state = CRAWL_AUTO_STRAIGHT;
+    crawler_auto_state = CRAWL_AUTO_BEACON;
     int beacon_ids[3] = {-1};
     int beacon_count = 0;
     int collision_trigger_count = 0;
 
-    /*
     BeaconMsg_t msg;
+
     TaskHandle_t beacon_task;
     xQueueReset(beaconMsgQueue);
     xTaskCreate(beacon_rx_task, "beacon_rx_task", 4096, NULL,
                 configMAX_PRIORITIES-1, &beacon_task);
-    */
 
     float start_revolutions = 0;
     while (1)
@@ -172,12 +175,13 @@ static void crawl_autonomous_task()
         if (crawler_state != CRAWL_STATE_AUTO) {
             crawler_log("Not in auto mode");
             vTaskDelay(100/portTICK_PERIOD_MS);
-            //vTaskDelete(beacon_task);
-            //vTaskDelete(crawl_autonomous_task);
+            if (beacon_task != NULL) {
+                vTaskDelete(beacon_task);
+                beacon_task = NULL;
+            }
             continue;
         }
 
-        update_sensor_readings();
         if (collision_dist <= 0.0f)
         {
             collision_trigger_count++;
@@ -192,49 +196,45 @@ static void crawl_autonomous_task()
         }
         else if (crawler_auto_state == CRAWL_AUTO_BEACON)
         {
-            /*
-            // TODO: Log the split time to the server
-            float split = beacon_count == 1 ? 0 : beacon_rx_get_split_time();
-            server_log_split_time(msg.id, split, NULL, NULL, 0);
+            if (beacon_count > 0) {
+                // TODO: Log the split time to the server
+                float split = beacon_count == 1 ? 0 : beacon_rx_get_split_time();
+                server_log_split_time(msg.id, split, NULL, NULL, 0);
+            }
 
-            // If the beacon
-            crawler_log("Encountered beacons: %d\n", beacon_count);
-            crawler_log("Process Beacon Msg: %d, %c", msg.id, msg.color);
             if (beacon_count >= 3) {
                 crawler_log("Third beacon encountered, exiting auto mode.\n");
                 crawler_state = CRAWL_STATE_STOPPED;
                 crawler_stop();
-                break;
             }
-            else {
-                if (msg.color == 'R') {
-                    // If the light is red, stop and keep draining
-                    // the queue
-                    crawler_log("Stopping for red light");
-                    crawler_stop();
-
-                else {
-                    crawler_log("Green Light!");
-                    crawler_auto_state = CRAWL_AUTO_STRAIGHT;
-                    break;
+            else if (beacon_count > 0) {
+                crawler_log("Waiting for a green lite");
+                while (1) {
+                    if (msg.color == 'R') {
+                        // If the light is red, stop and keep draining
+                        // the queue
+                        //crawler_log("Stopping for red light");
+                        crawler_stop();
+                        xQueueReceive(beaconMsgQueue, &msg, 10);
+                    }
+                    else {
+                        crawler_log("Green Light - Start going straight");
+                        crawler_auto_state = CRAWL_AUTO_STRAIGHT;
+                        break;
+                    }
                 }
-                crawler_log("Waiting for beacon message.");
-                xQueueReceive(beaconMsgQueue, &msg, 0);
             }
-            */
-            crawler_auto_state = CRAWL_AUTO_STRAIGHT;
         }
         else if (crawler_auto_state == CRAWL_AUTO_STRAIGHT)
         {
             // float adjustment = PID(crawler_current_speed);
             // float pwm_adjust = adjustment;
-            // crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
+            crawler_esc_set_value(CRAWLER_START_PWM);
 
             // // Keep us going straight
-            // uint32_t diff = right_side_rear_dist - right_side_front_dist;
-            // int value = diff*7 + PWM_NEUTRAL_US;
-
-            // crawler_steering_set_value(value);
+            uint32_t diff = right_side_rear_dist - right_side_front_dist;
+            int value = diff*7 + PWM_NEUTRAL_US;
+            crawler_steering_set_value(value);
 
             if (should_turn_left()) {
                 start_revolutions = total_revolutions;
@@ -247,42 +247,36 @@ static void crawl_autonomous_task()
         else if (crawler_auto_state == CRAWL_AUTO_LEFT_TURN)
         {
             // Turn all the way left, do not control speed during turn! (yet...)
-
             // we're intentionally not blocking in this state so collision
             // detection will keep us from hitting anything
             if (total_revolutions - start_revolutions >= 6.5) {
                 crawler_log("Turn Finished: %.2f\n", total_revolutions);
-                crawler_stop();
-                crawler_state = CRAWL_STATE_STOPPED;
+                crawler_steering_set_value(PWM_NEUTRAL_US);
+                crawler_state = CRAWL_AUTO_STRAIGHT;
             }
         }
 
         // Draining the beacon message queue looking for new beacon id
-        /*
-        if (crawler_auto_state != CRAWL_AUTO_BEACON)
+        while (xQueueReceive(beaconMsgQueue, &msg, 0) == pdTRUE)
         {
-            while (xQueueReceive(beaconMsgQueue, &msg, 0) != pdTRUE)
-            {
-                bool seen = false;
-                for (int i = 0; i == beacon_count; i++) {
-                    if (beacon_ids[i] == msg.id) {
-                        seen = true;
-                        break;
-                    }
-                }
-
-                // We have not seen this beacon
-                if (!seen) {
-                    crawler_auto_state = CRAWL_AUTO_BEACON;
-                    beacon_ids[beacon_count++] = msg.id;
+            bool seen = false;
+            for (int i = 0; i < beacon_count; i++) {
+                if (beacon_ids[i] == msg.id) {
+                    seen = true;
                     break;
                 }
             }
 
+            // We have not seen this beacon
+            if (!seen) {
+                crawler_log("New beacon found: %d\n", msg.id);
+                crawler_auto_state = CRAWL_AUTO_BEACON;
+                beacon_ids[beacon_count++] = msg.id;
+                break;
+            }
         }
-        */
 
-        vTaskDelay(100/portTICK_PERIOD_MS);
+        vTaskDelay(20/portTICK_PERIOD_MS);
     }
 }
 
@@ -406,13 +400,17 @@ void app_main()
 
     PID_init();
 
+    xTaskCreate(update_sensor_readings, "update_sensors",
+                4096, NULL, configMAX_PRIORITIES-2, NULL);
+
 #ifdef WIFI_ENABLED
-    xTaskCreate(crawler_cmd_recv, "crawler_cmd_recv", 4096, NULL, configMAX_PRIORITIES-1, NULL);
+    xTaskCreate(
+        crawler_cmd_recv,
+        "crawler_cmd_recv",
+        4096,
+        NULL, configMAX_PRIORITIES-1, NULL);
 #endif
 
-    // xTaskCreate(distance_sensor_task, "distance_sensor_task", 4096, NULL, configMAX_PRIORITIES-2, NULL);
-    // xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-3, NULL);
-    // xTaskCreate(side_distance_monitor, "side_distance_monitor", 4096, NULL, configMAX_PRIORITIES-4, NULL);
     alphadisplay_write_ascii(0, '0');
     alphadisplay_write_ascii(1, '0');
     alphadisplay_write_ascii(2, '0');

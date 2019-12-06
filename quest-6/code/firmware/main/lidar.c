@@ -83,6 +83,6 @@ void lidar_read(int uart_num, uint32_t *dist, uint32_t *strength)
 {
     uint8_t data[RX_BUF_SIZE];
     uart_flush(uart_num);
-    int length = uart_read_bytes(uart_num, data, RX_BUF_SIZE, 20/portTICK_PERIOD_MS);
+    int length = uart_read_bytes(uart_num, data, RX_BUF_SIZE, 10/portTICK_PERIOD_MS);
     average_readings(data, length, dist, strength);
 }
