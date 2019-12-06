@@ -97,7 +97,6 @@ static void crawler_stop()
 static void distance_sensor_task()
 {
     int count = 0;
-
     while (1)
     {
         collision_dist = lidar_lite_get_distance();
@@ -130,7 +129,7 @@ static void crawler_speed_monitor()
 #define LIDAR_FRONT GPIO_NUM_33
 #define LIDAR_BACK  GPIO_NUM_14
 
-void side_distance_monitor()
+static void side_distance_monitor()
 {
     int count = 0;
     while (1)
@@ -173,6 +172,7 @@ static void crawl_autonomous_task()
     xTaskCreate(ir_rx_task, "ir_rx_task", 4096, NULL,
                 configMAX_PRIORITIES-1, &beacon_task);
 
+    bool turn_finished = false;
     while (1)
     {
         if (crawler_state != CRAWL_STATE_AUTO) break;
@@ -235,15 +235,23 @@ static void crawl_autonomous_task()
             crawler_log("Setting to: %.2d\n", value);
 
             if (should_turn_left()) {
+                turn_finished = false;
+                crawler_steering_set_value(PWM_HIGH_US);
                 crawler_auto_state = CRAWL_AUTO_LEFT_TURN;
             }
-
+            // Could implement "if should_turn_right here"
         }
         else if (crawler_auto_state == CRAWL_AUTO_LEFT_TURN)
         {
-            bool left_done = false;
-            if (left_done) {
+            // Turn all the way left, do not control speed during turn! (yet...)
+
+            // we're intentionally not blocking in this state so collision
+            // detection will keep us from hitting anything
+            if (turn_finished) {
                 crawler_auto_state = CRAWL_AUTO_STRAIGHT;
+            }
+            else {
+                // TODO: Determine if turn is finished.
             }
         }
 
