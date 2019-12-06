@@ -124,7 +124,6 @@ App.post("/crawler-event", RequireAuth, async function (req: AuthedRequest, resp
 
 /* Crawler Log Messages */
 UDP_Socket.on("message", function (message, remote) {
-    console.log("Message received");
     WebSocket.emit(WEBSOCKET_EVENT.CRAWLER_LOG, message.toString());
 });
 
