@@ -56,7 +56,22 @@ typedef enum {
     CRAWL_STATE_STOPPED
 } CrawlerState_t;
 
+typedef enum {
+    CRAWL_AUTO_BEACON,
+    CRAWL_AUTO_STRAIGHT,
+    CRAWL_AUTO_LEFT_TURN
+} CrawlerAutoState_t;
+
+// TODO: Turn these into a struct if time
 static CrawlerState_t crawler_state = CRAWL_STATE_STOPPED;
+static CrawlerAutoState_t crawler_auto_state = CRAWL_AUTO_BEACON;
+static float crawler_current_speed = 0;
+static int current_pulse_count = 0;
+static int last_pulse_count = 0;
+static TaskHandle_t crawler_auto_mode_task = NULL;
+static float collision_dist;
+static uint32_t right_side_front_dist;
+static uint32_t right_side_rear_dist;
 
 #pragma pack(push, 1)
 typedef struct {
@@ -72,10 +87,153 @@ typedef struct {
 static void crawler_stop()
 {
     // TODO: If time, make it stop gracefully
-    crawler_state = CRAWL_STATE_STOPPED;
     crawler_esc_set_value(PWM_NEUTRAL_US);
 }
 
+
+
+static void distance_sensor_task()
+{
+    int count = 0;
+
+    while (1)
+    {
+        collision_dist = lidar_lite_get_distance();
+        // This is a noisy task, so we'll only sample it every 2 seconds or so.
+        count = (count + 1) % 20;
+        if (count == 0) { crawler_log("Lidar Lite Distance: %.3f\n", collision_dist); }
+        vTaskDelay(100/portTICK_PERIOD_MS);
+    }
+}
+
+static void crawler_speed_monitor()
+{
+    float period = 1000;
+
+    while(1)
+    {
+        current_pulse_count = pulsecounter_get_count();
+        float revolutions = (float)(current_pulse_count - last_pulse_count)/6.0f;
+        float dist = 3.14159 * DIAMETER_M * revolutions;
+        crawler_current_speed = dist/(period/1000.0f);
+        crawler_current_speed *= crawler_get_direction();
+        alphadisplay_write_float(crawler_current_speed);
+        last_pulse_count = current_pulse_count;
+        vTaskDelay(period/portTICK_PERIOD_MS);
+    }
+}
+
+#define LIDAR_FRONT_UART UART_NUM_0
+#define LIDAR_BACK_UART UART_NUM_2
+#define LIDAR_FRONT GPIO_NUM_33
+#define LIDAR_BACK  GPIO_NUM_14
+
+void side_distance_monitor()
+{
+    int count = 0;
+    while (1)
+    {
+        uint32_t front_stren = 0;
+        uint32_t back_stren;
+
+        lidar_read(LIDAR_FRONT_UART, &right_side_front_dist, &front_stren);
+        lidar_read(LIDAR_BACK_UART, &right_side_rear_dist, &back_stren);
+
+        // Only log ever 2 seconds.
+        count = (count + 1) % 20;
+        if (count == 0) {
+            crawler_log("Front: %.2d\tBack: %.2d\tSteering Val: %.2d\n", right_side_front_dist, right_side_rear_dist, crawler_steering_get_value());
+        }
+        //crawler_log("right: %d, left: %d\n", right_dist, left_dist);
+        vTaskDelay(100/portTICK_PERIOD_MS);
+    }
+}
+
+extern void ir_rx_task(void *arg);
+extern void ir_rx_init();
+
+static bool should_turn_left()
+{
+    return false;
+}
+
+static void crawl_autonomous_task()
+{
+    PID_set_setpoint(0.2);
+    crawler_esc_set_value(CRAWLER_START_PWM);
+
+    crawler_state = CRAWL_STATE_AUTO;
+    crawler_auto_state = CRAWL_AUTO_BEACON;
+    int beacon_ids[3] = {-1};
+    int beacon_count = 0;
+
+    int collision_trigger_count = 0;
+
+    while (1)
+    {
+        if (crawler_state != CRAWL_STATE_AUTO) break;
+
+        if (collision_dist <= 0.38f)
+        {
+            collision_trigger_count++;
+            if (collision_trigger_count >= 2) {
+                crawler_log("Stop Distance: %f\n", collision_dist);
+                crawler_stop();
+                crawler_state = CRAWL_STATE_STOPPED;
+            }
+            else {
+                collision_trigger_count = 0;
+            }
+        }
+        else if (crawler_auto_state == CRAWL_AUTO_BEACON)
+        {
+            // TODO: Log the split time
+
+            beacon_count++;
+            // If the beacon
+            crawler_log("Encountered beacons: %d\n", beacon_count);
+            if (beacon_count >= 3) {
+                crawler_state = CRAWL_STATE_STOPPED;
+                break;
+            }
+            else {
+                // Keep draining queue and wait for a non-red
+                // signal
+            }
+        }
+        else if (crawler_auto_state == CRAWL_AUTO_STRAIGHT)
+        {
+            float adjustment = PID(crawler_current_speed);
+            float pwm_adjust = adjustment;
+            crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
+
+            // Keep us going straight
+            uint32_t diff = right_side_rear_dist - right_side_front_dist;
+            int value = diff*7 + PWM_NEUTRAL_US;
+
+            crawler_steering_set_value(value);
+            crawler_log("Setting to: %.2d\n", value);
+
+            if (should_turn_left()) {
+                crawler_auto_state = CRAWL_AUTO_LEFT_TURN;
+            }
+
+        }
+        else if (crawler_auto_state == CRAWL_AUTO_LEFT_TURN)
+        {
+            bool left_done = false;
+            if (left_done) {
+                crawler_auto_state = CRAWL_AUTO_STRAIGHT;
+            }
+        }
+
+        // TODO: Check the beacon message queue and figure out
+        // if we should pay attention to the new beacon
+        vTaskDelay(100/portTICK_PERIOD_MS);
+    }
+
+    crawler_log("Exiting autonomous mode.");
+}
 
 static void crawler_cmd_recv()
 {
@@ -123,18 +281,31 @@ static void crawler_cmd_recv()
                          data->cmd, data->value);
             switch(data->cmd) {
                 case CMD_ESC:
-                    mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER, MCPWM_OPR_A, data->value);
+                    if (crawler_state != CRAWL_STATE_AUTO) {
+                        mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER, MCPWM_OPR_A, data->value);
+                        if (data->value != PWM_NEUTRAL_US) {
+                            crawler_state = CRAWL_STATE_MANUAL;
+                        }
+                    }
                     break;
                 case CMD_STEER:
-                    mcpwm_set_duty_in_us(STEERING_PWM_UNIT, STEERING_PWM_TIMER, MCPWM_OPR_A, data->value);
+                    if (crawler_state != CRAWL_STATE_AUTO) {
+                        mcpwm_set_duty_in_us(STEERING_PWM_UNIT, STEERING_PWM_TIMER, MCPWM_OPR_A, data->value);
+                    }
                     break;
                 case CMD_START_AUTO:
-                    PID_set_setpoint(0.2);
-                    crawler_esc_set_value(CRAWLER_START_PWM);
-                    crawler_state = CRAWL_STATE_AUTO;
+                    if (crawler_auto_mode_task == NULL) {
+                        xTaskCreate(crawl_autonomous_task, "", 4096, NULL, configMAX_PRIORITIES-1, &crawler_auto_mode_task);
+                    }
                     break;
                 case CMD_STOP_AUTO:
                     crawler_stop();
+                    // This should caue the auto task to return, but we need
+                    // to delete the task anyway.
+                    crawler_state = CRAWL_STATE_STOPPED;
+                    if (crawler_auto_mode_task != NULL) {
+                        vTaskDelete(crawler_auto_mode_task);
+                    }
                     break;
                 case CMD_CALIBRATE:
                     crawler_calibrate();
@@ -146,93 +317,6 @@ static void crawler_cmd_recv()
     }
 }
 
-void distance_sensor_task()
-{
-    int triggered_count = 0;
-    int count = 0;
-    while (1)
-    {
-        float dist = lidar_lite_get_distance();
-        // crawler_log("Distance: %f\n", dist);
-        if (dist <= 0.38f && crawler_state == CRAWL_STATE_AUTO) {
-            triggered_count++;
-            if (triggered_count >= 2) {
-                crawler_log("Stop Distance: %f\n", dist);
-                crawler_stop();
-            }
-        }
-        else {
-            triggered_count = 0;
-        }
-        count = (count + 1) % 20;
-        if (count == 0) {
-            crawler_log("Lidar Lite Distance: %.3f\n", dist);
-        }
-        vTaskDelay(100/portTICK_PERIOD_MS);
-    }
-}
-
-void crawler_speed_monitor()
-{
-    int16_t last_pulse_count = 0;
-    float speed = 0;
-    float period = 1000;
-
-    while(1)
-    {
-        int16_t pulse_count = pulsecounter_get_count();
-        float revolutions = (float)(pulse_count - last_pulse_count)/6.0f;
-        float dist = 3.14159 * DIAMETER_M * revolutions;
-
-        speed = dist/(period/1000.0f);
-        speed *= crawler_get_direction();
-
-        alphadisplay_write_float(speed);
-        last_pulse_count = pulse_count;
-
-        if (crawler_state == CRAWL_STATE_AUTO)
-        {
-            float adjustment = PID(speed);
-            float pwm_adjust = adjustment;
-            crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
-        }
-
-        vTaskDelay(period/portTICK_PERIOD_MS);
-    }
-}
-#define LIDAR_FRONT_UART UART_NUM_0
-#define LIDAR_BACK_UART UART_NUM_2
-#define LIDAR_FRONT GPIO_NUM_33
-#define LIDAR_BACK  GPIO_NUM_14
-
-void lidar_monitor()
-{
-    while (1)
-    {
-            uint32_t front_dist = 0;
-            uint32_t front_stren = 0;
-            uint32_t back_dist;
-            uint32_t back_stren;
-
-            lidar_read(LIDAR_FRONT_UART, &front_dist, &front_stren);
-            lidar_read(LIDAR_BACK_UART, &back_dist, &back_stren);
-
-        if (1 || crawler_state == CRAWL_STATE_AUTO)
-        {
-            uint32_t diff = back_dist - front_dist;
-            int value = diff*7 + PWM_NEUTRAL_US;
-            crawler_steering_set_value(value);
-            crawler_log("Setting to: %.2d\n", value);
-        }
-        crawler_log("Front: %.2d\tBack: %.2d\tSteering Val: %.2d\n", front_dist, back_dist, crawler_steering_get_value());
-        //crawler_log("right: %d, left: %d\n", right_dist, left_dist);
-        vTaskDelay(100/portTICK_PERIOD_MS);
-    }
-}
-
-
-extern void ir_rx_task(void *arg);
-extern void ir_rx_init();
 void app_main()
 {
     lidar_lite_init();
@@ -275,7 +359,7 @@ void app_main()
     xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(distance_sensor_task, "distance_sensor_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(ir_rx_task, "ir_rx_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
-    // xTaskCreate(lidar_monitor, "lidar_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
+    xTaskCreate(side_distance_monitor, "side_distance_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     alphadisplay_write_ascii(0, '0');
     alphadisplay_write_ascii(1, '0');
     alphadisplay_write_ascii(2, '0');
