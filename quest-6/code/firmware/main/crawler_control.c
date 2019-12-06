@@ -66,7 +66,6 @@ void crawler_esc_set_value(uint32_t pwm)
     esc_pwm_us = pwm;
     mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER,
             MCPWM_OPR_A, esc_pwm_us);
-    printf("Set ESC: %u\n", esc_pwm_us);
 }
 
 uint32_t crawler_steering_get_value()

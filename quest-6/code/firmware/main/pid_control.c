@@ -75,8 +75,6 @@ float PID(float measured_value) {
   float derivative = (error - previous_error) / dt;
   float output = KP * error + KI * integral + KD * derivative;
   previous_error = error;
-  printf("Setpoint: %.1f, Measurement: %.1f, Error: %.1f, Previous Error: %.1f\n",
-          setpoint, measured_value, error, previous_error);
 
   return output;
 }

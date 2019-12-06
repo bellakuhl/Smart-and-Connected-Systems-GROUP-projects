@@ -98,6 +98,7 @@ void beacon_rx_task(void *arg)
             for (int i = 0; i < rxBytes; i++) {
                 if (data[i] == 0x1B && msgQueue != NULL) {
                     BeaconMsg_t msg = { .color=data[i+1], .id=data[i+2] };
+                    crawler_log("Queing message");
                     BaseType_t res = xQueueSendToBack(msgQueue, &msg, 5);
                     if (res != pdTRUE) {
                         crawler_log("Error queing beacon message: %d", res);
