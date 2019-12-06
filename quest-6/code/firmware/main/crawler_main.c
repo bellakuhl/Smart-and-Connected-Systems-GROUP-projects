@@ -193,6 +193,7 @@ static void crawl_autonomous_task()
         {
             // TODO: Log the split time to the server
             float split = ir_rx_get_split_time();
+            server_log_split_time(msg.id, split, NULL, NULL, 0);
 
             beacon_count++;
             // If the beacon

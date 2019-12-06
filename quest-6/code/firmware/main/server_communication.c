@@ -7,6 +7,8 @@
 #include <string.h>
 #include "esp_log.h"
 #include "server_communication.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 #include "lwip/err.h"
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
@@ -27,9 +29,9 @@ void server_comm_init()
     g_udp_send_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 }
 
-int serialize_json(char *event, char **dst)
+int serialize_json(uint8_t beacon_id, float split_time, char **dst)
 {
-    char *fmt = "{\"event\":%d}";
+    char *fmt = "{\"beacon_id\":%d, \"split_time\": %.2f}";
     size_t strsize = sizeof(char) * strlen(fmt) + 30;
     *dst = (char *)malloc(strsize);
     memset(*dst, 0, strsize);
@@ -37,16 +39,23 @@ int serialize_json(char *event, char **dst)
         return -1; // malloc failed, handle error?
     }
 
-    sprintf(*dst, fmt,  event);
+    sprintf(*dst, fmt,  beacon_id, split_time);
     return strlen(*dst);
 }
 
-int server_log_event(char *event, char *response, int *response_len, int max_response_len)
+int server_log_split_time
+(
+    uint8_t beacon_id,
+    float split_time,
+    char *response,
+    int *response_len,
+    int max_response_len
+)
 {
     esp_http_client_config_t config = {
         .host = SERVER_HOST,
         .port = SERVER_HTTP_PORT,
-        .path = "/cralwer-event/log",
+        .path = "/crawler-event",
         .username = SERVER_USERNAME,
         .password = SERVER_PASSWD,
         .auth_type = HTTP_AUTH_TYPE_BASIC
@@ -58,11 +67,11 @@ int server_log_event(char *event, char *response, int *response_len, int max_res
     }
 
     char *body;
-    int body_size = serialize_json(event, &body);
+    int body_size = serialize_json(beacon_id, split_time, &body);
     if (body_size < 0) {
         return body_size;
     }
-    ESP_LOGI(TAG, "Request Body: %s\n", body);
+    crawler_log("Request Body: %s\n", body);
 
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
@@ -74,11 +83,11 @@ int server_log_event(char *event, char *response, int *response_len, int max_res
     if (response != NULL &&  content_length > 0 && content_length <= max_response_len) {
         *response_len = esp_http_client_read(client, response, content_length);
         if (*response_len <= 0) {
-            ESP_LOGE(TAG, "Error read data");
+            crawler_log("Error read data");
         }
 
         response[*response_len] = 0;
-        ESP_LOGD(TAG, "reponse_len = %d", *response_len);
+        crawler_log("reponse_len = %d", *response_len);
     }
 
     free(body);

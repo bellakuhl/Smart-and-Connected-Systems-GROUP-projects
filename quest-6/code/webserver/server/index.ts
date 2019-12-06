@@ -99,15 +99,15 @@ App.get("/crawler-event", async function (req, resp) {
 // Only an authorized crawler can log events.
 App.post("/crawler-event", RequireAuth, async function (req: AuthedRequest, resp) {
     let data = req.body;
-    if (!data.event) {
-        return resp.status(422).json({message: "event is required"});
+    if (!data.beacon_id || data.split_time == undefined) {
+        return resp.status(422).json({message: "beacon_id and split_time are required"});
     }
 
     try {
         let record: db.ICrawlerEventRecord = {
             crawler_id: req.user.username,
             time: new Date().getTime(),
-            event: data.event,
+            event: `Beacon: ${data.beacon_id}`,
             split_time: data.split_time
         };
 
