@@ -7,7 +7,7 @@ set(COMPONENT_SRCS
     "lidar.c"
     "lidarlite.c"
     "ultrasonic.c"
-    "timer.c"
+    "beacon_detection.c"
     "server_communication.c"
     "crawler_main.c")
 

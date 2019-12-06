@@ -25,6 +25,7 @@
 #include "lidar.h"
 #include "lidarlite.h"
 #include "wifi.h"
+#include "beacon_detection.h"
 
 // This wheel diameter, used to calculate the wheel
 // speed based on the pulse counter.
@@ -72,6 +73,7 @@ static TaskHandle_t crawler_auto_mode_task = NULL;
 static float collision_dist;
 static uint32_t right_side_front_dist;
 static uint32_t right_side_rear_dist;
+static QueueHandle_t beaconMsgQueue;
 
 #pragma pack(push, 1)
 typedef struct {
@@ -149,9 +151,6 @@ void side_distance_monitor()
     }
 }
 
-extern void ir_rx_task(void *arg);
-extern void ir_rx_init();
-
 static bool should_turn_left()
 {
     return false;
@@ -168,6 +167,11 @@ static void crawl_autonomous_task()
     int beacon_count = 0;
 
     int collision_trigger_count = 0;
+    BeaconMsg_t msg;
+    TaskHandle_t beacon_task;
+    xQueueReset(beaconMsgQueue);
+    xTaskCreate(ir_rx_task, "ir_rx_task", 4096, NULL,
+                configMAX_PRIORITIES-1, &beacon_task);
 
     while (1)
     {
@@ -187,18 +191,34 @@ static void crawl_autonomous_task()
         }
         else if (crawler_auto_state == CRAWL_AUTO_BEACON)
         {
-            // TODO: Log the split time
+            // TODO: Log the split time to the server
+            float split = ir_rx_get_split_time();
 
             beacon_count++;
             // If the beacon
             crawler_log("Encountered beacons: %d\n", beacon_count);
             if (beacon_count >= 3) {
+                crawler_log("Third beacon encountered, exiting auto mode.\n");
                 crawler_state = CRAWL_STATE_STOPPED;
                 break;
             }
             else {
-                // Keep draining queue and wait for a non-red
-                // signal
+                while (1)
+                {
+                    if (msg.color == 'R') {
+                        // If the light is red, stop and keep draining
+                        // the queue
+                        crawler_log("Stopping for red light");
+                        crawler_stop();
+                    }
+                    else {
+                        crawler_log("Green Light!");
+                        crawler_auto_state = CRAWL_AUTO_STRAIGHT;
+                        break;
+                    }
+                    crawler_log("Waiting for beacon message.");
+                    xQueueReceive(beaconMsgQueue, &msg, 0);
+                }
             }
         }
         else if (crawler_auto_state == CRAWL_AUTO_STRAIGHT)
@@ -227,11 +247,29 @@ static void crawl_autonomous_task()
             }
         }
 
-        // TODO: Check the beacon message queue and figure out
-        // if we should pay attention to the new beacon
+        // Draing the beacon message queue looking for new beacon id
+        while (xQueueReceive(beaconMsgQueue, &msg, 5) != pdTRUE)
+        {
+            bool seen = false;
+            for (int i = 0; i == beacon_count; i++) {
+                if (beacon_ids[i] == msg.id) {
+                    seen = true;
+                    break;
+                }
+            }
+
+            // We have not seen this beacon
+            if (!seen) {
+                crawler_auto_state = CRAWL_AUTO_BEACON;
+                beacon_ids[beacon_count++] = msg.id;
+                break;
+            }
+        }
+
         vTaskDelay(100/portTICK_PERIOD_MS);
     }
 
+    vTaskDelete(beacon_task);
     crawler_log("Exiting autonomous mode.");
 }
 
@@ -317,11 +355,13 @@ static void crawler_cmd_recv()
     }
 }
 
+
 void app_main()
 {
+    beaconMsgQueue = xQueueCreate(60, sizeof(BeaconMsg_t));
     lidar_lite_init();
     alphadisplay_init();
-    ir_rx_init();
+    ir_rx_init(beaconMsgQueue);
     vTaskDelay(1000/portTICK_PERIOD_MS);
     alphadisplay_write_ascii(0, 'I');
     alphadisplay_write_ascii(1, 'N');
@@ -358,7 +398,6 @@ void app_main()
 
     xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(distance_sensor_task, "distance_sensor_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
-    xTaskCreate(ir_rx_task, "ir_rx_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(side_distance_monitor, "side_distance_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     alphadisplay_write_ascii(0, '0');
     alphadisplay_write_ascii(1, '0');
