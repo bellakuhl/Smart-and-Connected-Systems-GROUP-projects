@@ -20,8 +20,6 @@
 // #define SPLITS_TIMER (0.00002*TIMER_SCALE) // 0.1 seconds
 #define HW_TIMER_GROUP TIMER_GROUP_0
 #define HW_TIMER_IDX 0
-#define RMT_TX_GPIO 26
-#define RMT_TX_CHANNEL RMT_CHANNEL_0
 #define RXD_PIN (GPIO_NUM_25)
 #define TXD_PIN (GPIO_NUM_12)
 
@@ -71,15 +69,18 @@ void beacon_rx_init(QueueHandle_t queue)
     timer_start(HW_TIMER_GROUP, HW_TIMER_IDX);
 }
 
-float beacon_rx_get_split_time()
+float beacon_rx_get_time()
 {
-    uint64_t split = 0;
-    timer_get_counter_value(HW_TIMER_GROUP, HW_TIMER_IDX, &split);
-    timer_set_counter_value(HW_TIMER_GROUP, HW_TIMER_IDX, 0);
-    return (float)split/TIMER_SCALE;
+    double time = 0;
+    timer_get_counter_time_sec(HW_TIMER_GROUP, HW_TIMER_IDX, &time);
+    return (float)time;
 }
 
 
+void beacon_rx_reset_timer()
+{
+    timer_set_counter_value(HW_TIMER_GROUP, HW_TIMER_IDX, 0);
+}
 
 void beacon_rx_task(void *arg)
 {

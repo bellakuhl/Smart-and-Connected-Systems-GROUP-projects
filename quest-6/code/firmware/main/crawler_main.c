@@ -108,7 +108,6 @@ static void crawler_speed_monitor()
     float dist = 3.14159 * DIAMETER_M * revolutions;
     crawler_current_speed = dist/(period/1000.0f);
     crawler_current_speed *= crawler_get_direction();
-    alphadisplay_write_float(crawler_current_speed);
     last_pulse_count = current_pulse_count;
 }
 
@@ -132,8 +131,8 @@ static bool should_turn_left()
 
     // With more responsive sensor readings I want
     // to try this again.
-    return collision_dist <= 260;
-    // return collision_dist <= 50;
+    // return collision_dist <= 260;
+    return collision_dist <= 50;
 }
 
 static int reading_count = 0;
@@ -202,8 +201,9 @@ static void crawl_autonomous_task()
         {
             if (beacon_count > 0) {
                 // TODO: Log the split time to the server
-                float split = beacon_count == 1 ? 0 : beacon_rx_get_split_time();
+                float split = beacon_count == 1 ? 0 : beacon_rx_get_time();
                 server_log_split_time(msg.id, split, NULL, NULL, 0);
+                alphadisplay_write_float(split);
             }
 
             if (beacon_count >= 3) {
@@ -221,6 +221,10 @@ static void crawl_autonomous_task()
                         xQueueReceive(beaconMsgQueue, &msg, 10);
                     }
                     else if (msg.color == 'G' || msg.color == 'Y') {
+                        // Start counting from the first green light.
+                        if (beacon_count == 1) {
+                            beacon_rx_reset_timer();
+                        }
                         crawler_log("Green Light - Start going straight");
                         crawler_auto_state = CRAWL_AUTO_STRAIGHT;
                         break;
@@ -260,9 +264,9 @@ static void crawl_autonomous_task()
                 crawler_log("Turn Finished: %.2f\n", total_revolutions);
                 crawler_steering_set_value(PWM_NEUTRAL_US);
                 crawler_auto_state = CRAWL_AUTO_STRAIGHT;
-                // beacon_ids[0] = -1; //JR - test auto
-                // beacon_ids[1] = -1; //JR - test auto
-                // beacon_ids[2] = -1; //JR - test auto
+                beacon_ids[0] = -1; //JR - test auto
+                beacon_ids[1] = -1; //JR - test auto
+                beacon_ids[2] = -1; //JR - test auto
             }
         }
 
@@ -422,8 +426,8 @@ void app_main()
         NULL, configMAX_PRIORITIES-1, NULL);
 #endif
 
-    alphadisplay_write_ascii(0, '0');
-    alphadisplay_write_ascii(1, '0');
-    alphadisplay_write_ascii(2, '0');
-    alphadisplay_write_ascii(3, '0');
+    alphadisplay_write_ascii(0, 'R');
+    alphadisplay_write_ascii(1, 'E');
+    alphadisplay_write_ascii(2, 'D');
+    alphadisplay_write_ascii(3, 'Y');
 }

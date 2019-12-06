@@ -66,8 +66,8 @@ export function AccessLogGrid(props: ICrawlerEventProps) {
 
     React.useEffect(function () {
         loadData().then(function () {
-            socket.off("crawler-log");
-            socket.on("crawler-log", function (data: string) {
+            socket.off("crawler-event");
+            socket.on("crawler-event", function (data: string) {
                 let record: ICrawlerEventRecord = JSON.parse(data).record;
                 if (props.since && props.since > record.time) {
                     // too old
