@@ -48,7 +48,7 @@ static void uart_config(void)
 }
 
 // Set up periodic timer for dt = 100ms
-void ir_rx_init(QueueHandle_t queue)
+void beacon_rx_init(QueueHandle_t queue)
 {
     uart_config();
     // Basic parameters of the timer
@@ -71,7 +71,7 @@ void ir_rx_init(QueueHandle_t queue)
     timer_start(HW_TIMER_GROUP, HW_TIMER_IDX);
 }
 
-float ir_rx_get_split_time()
+float beacon_rx_get_split_time()
 {
     uint64_t split = 0;
     timer_get_counter_value(HW_TIMER_GROUP, HW_TIMER_IDX, &split);
@@ -80,7 +80,7 @@ float ir_rx_get_split_time()
 }
 
 
-void ir_rx_task(void *arg)
+void beacon_rx_task(void *arg)
 {
    static const char *RX_TASK_TAG = "RX_TASK";
    esp_log_level_set(RX_TASK_TAG, ESP_LOG_INFO);

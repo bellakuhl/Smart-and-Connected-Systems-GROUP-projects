@@ -9,8 +9,8 @@ typedef struct {
     char id;
 } BeaconMsg_t;
 
-void ir_rx_init(QueueHandle_t queue);
-float ir_rx_get_split_time();
-void ir_rx_task(void *arg);
+void beacon_rx_init(QueueHandle_t queue);
+float beacon_rx_get_split_time();
+void beacon_rx_task(void *arg);
 
 #endif

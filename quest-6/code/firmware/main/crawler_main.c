@@ -169,7 +169,7 @@ static void crawl_autonomous_task()
     BeaconMsg_t msg;
     TaskHandle_t beacon_task;
     xQueueReset(beaconMsgQueue);
-    xTaskCreate(ir_rx_task, "ir_rx_task", 4096, NULL,
+    xTaskCreate(beacon_rx_task, "beacon_rx_task", 4096, NULL,
                 configMAX_PRIORITIES-1, &beacon_task);
 
     bool turn_finished = false;
@@ -192,7 +192,7 @@ static void crawl_autonomous_task()
         else if (crawler_auto_state == CRAWL_AUTO_BEACON)
         {
             // TODO: Log the split time to the server
-            float split = ir_rx_get_split_time();
+            float split = beacon_rx_get_split_time();
             server_log_split_time(msg.id, split, NULL, NULL, 0);
 
             beacon_count++;
@@ -370,7 +370,7 @@ void app_main()
     beaconMsgQueue = xQueueCreate(60, sizeof(BeaconMsg_t));
     lidar_lite_init();
     alphadisplay_init();
-    ir_rx_init(beaconMsgQueue);
+    beacon_rx_init(beaconMsgQueue);
     vTaskDelay(1000/portTICK_PERIOD_MS);
     alphadisplay_write_ascii(0, 'I');
     alphadisplay_write_ascii(1, 'N');
