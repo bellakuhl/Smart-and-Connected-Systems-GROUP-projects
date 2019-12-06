@@ -20,7 +20,7 @@ export function DebugLog(props: IDebugLogProps) {
     }, []);
 
     React.useEffect(function () {
-        end.scrollIntoView({behavior: "smooth"});
+        // end.scrollIntoView({behavior: "smooth"});
     });
 
     return (

@@ -80,6 +80,7 @@ float beacon_rx_get_split_time()
 }
 
 
+
 void beacon_rx_task(void *arg)
 {
    static const char *RX_TASK_TAG = "RX_TASK";
@@ -94,11 +95,18 @@ void beacon_rx_task(void *arg)
 
         if (rxBytes > 0) {
             for (int i = 0; i < rxBytes; i++) {
-                if (data[i] == 0x1B && msgQueue != NULL) {
-                    BeaconMsg_t msg = { .color=data[i+1], .id=data[i+2] };
-                    BaseType_t res = xQueueSendToBack(msgQueue, &msg, 5);
-                    if (res != pdTRUE) {
-                        crawler_log("Error queing beacon message: %d", res);
+                if (data[i] == 0x1B && msgQueue != NULL && i+3 < rxBytes) {
+                    //char cs = data[i]^data[i+1]^data[i+2];
+
+                    if (data[i+1] != 'R' && data[i+1] != 'G' && data[i+1] != 'Y') {
+                        crawler_log("Unknown signal: %d", data[i+1]);
+                    }
+                    else {
+                        BeaconMsg_t msg = { .color=data[i+1], .id=data[i+2] };
+                        BaseType_t res = xQueueSendToBack(msgQueue, &msg, 5);
+                        if (res != pdTRUE) {
+                            crawler_log("Error queing beacon message: %d", res);
+                        }
                     }
                     break;
                 }

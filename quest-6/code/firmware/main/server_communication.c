@@ -55,7 +55,10 @@ int server_log_split_time
     esp_http_client_config_t config = {
         .host = SERVER_HOST,
         .port = SERVER_HTTP_PORT,
-        .path = "/crawler-event"
+        .path = "/crawler-event",
+        .username = SERVER_USERNAME,
+        .password = SERVER_PASSWD,
+        .auth_type = HTTP_AUTH_TYPE_BASIC
     };
 
     esp_http_client_handle_t client = esp_http_client_init(&config);
@@ -126,6 +129,6 @@ void crawler_log(const char *format, ...)
     va_end(args);
     ESP_LOGI(TAG, "%s", buffer);
 #ifdef WIFI_ENABLED
-    // server_send_log(buffer);
+    server_send_log(buffer);
 #endif
 }

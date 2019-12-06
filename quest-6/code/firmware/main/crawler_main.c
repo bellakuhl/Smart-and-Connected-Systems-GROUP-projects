@@ -128,7 +128,12 @@ static void side_distance_monitor()
 
 static bool should_turn_left()
 {
-    return collision_dist <= 310;
+//    return collision_dist <= 310;
+
+    // With more responsive sensor readings I want
+    // to try this again.
+    return collision_dist <= 260;
+    // return collision_dist <= 50;
 }
 
 static int reading_count = 0;
@@ -140,7 +145,7 @@ static void update_sensor_readings()
         crawler_speed_monitor();
         side_distance_monitor();
 
-        reading_count = (reading_count + 1) % 10;
+        reading_count = (reading_count + 1) % 20;
         if (reading_count == 0) {
             crawler_log("Front: %.2d\tBack: %.2d\tSteering Val: %.2d",
                         right_side_front_dist, right_side_rear_dist, crawler_steering_get_value());
@@ -155,7 +160,6 @@ static void update_sensor_readings()
 static void crawl_autonomous_task()
 {
     PID_set_setpoint(0.3);
-    crawler_esc_set_value(CRAWLER_START_PWM);
 
     crawler_auto_state = CRAWL_AUTO_BEACON;
     int beacon_ids[3] = {-1};
@@ -173,7 +177,7 @@ static void crawl_autonomous_task()
     while (1)
     {
         if (crawler_state != CRAWL_STATE_AUTO) {
-            crawler_log("Not in auto mode");
+            // crawler_log("Not in auto mode");
             vTaskDelay(100/portTICK_PERIOD_MS);
             if (beacon_task != NULL) {
                 vTaskDelete(beacon_task);
@@ -213,14 +217,16 @@ static void crawl_autonomous_task()
                     if (msg.color == 'R') {
                         // If the light is red, stop and keep draining
                         // the queue
-                        //crawler_log("Stopping for red light");
                         crawler_stop();
                         xQueueReceive(beaconMsgQueue, &msg, 10);
                     }
-                    else {
+                    else if (msg.color == 'G' || msg.color == 'Y') {
                         crawler_log("Green Light - Start going straight");
                         crawler_auto_state = CRAWL_AUTO_STRAIGHT;
                         break;
+                    }
+                    else {
+                        crawler_log("Unknown color: %c", msg.color);
                     }
                 }
             }
@@ -232,9 +238,10 @@ static void crawl_autonomous_task()
             crawler_esc_set_value(CRAWLER_START_PWM);
 
             // // Keep us going straight
-            uint32_t diff = right_side_rear_dist - right_side_front_dist;
-            int value = diff*7 + PWM_NEUTRAL_US;
-            crawler_steering_set_value(value);
+            // uint32_t diff = right_side_rear_dist - right_side_front_dist;
+            // int value = diff*7 + PWM_NEUTRAL_US;
+            // crawler_steering_set_value(value);
+            crawler_steering_set_value(PWM_NEUTRAL_US);
 
             if (should_turn_left()) {
                 start_revolutions = total_revolutions;
@@ -252,13 +259,17 @@ static void crawl_autonomous_task()
             if (total_revolutions - start_revolutions >= 6.5) {
                 crawler_log("Turn Finished: %.2f\n", total_revolutions);
                 crawler_steering_set_value(PWM_NEUTRAL_US);
-                crawler_state = CRAWL_AUTO_STRAIGHT;
+                crawler_auto_state = CRAWL_AUTO_STRAIGHT;
+                // beacon_ids[0] = -1; //JR - test auto
+                // beacon_ids[1] = -1; //JR - test auto
+                // beacon_ids[2] = -1; //JR - test auto
             }
         }
 
         // Draining the beacon message queue looking for new beacon id
         while (xQueueReceive(beaconMsgQueue, &msg, 0) == pdTRUE)
         {
+            crawler_log("Reading queue");
             bool seen = false;
             for (int i = 0; i < beacon_count; i++) {
                 if (beacon_ids[i] == msg.id) {
@@ -269,9 +280,9 @@ static void crawl_autonomous_task()
 
             // We have not seen this beacon
             if (!seen) {
-                crawler_log("New beacon found: %d\n", msg.id);
                 crawler_auto_state = CRAWL_AUTO_BEACON;
                 beacon_ids[beacon_count++] = msg.id;
+                crawler_log("New beacon found: %d (total - %d)\n", msg.id, beacon_count);
                 break;
             }
         }

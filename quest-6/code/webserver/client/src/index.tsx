@@ -113,11 +113,11 @@ function App() {
                 </Grid>
                 <Grid item xs={6}>
                     <Paper className={classes.paper}>
-                        <h2>Crawler Controls</h2>
-                        <CrawlerControls />
+                        <h2>Log</h2>
+                        <DebugLog />
                     </Paper>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={12}>
                     <div className={classes.paper}>
                         <h2>Events</h2>
                         {/* <DatePicker label="Since" onChange={updateSince} defaultDate={since} />
@@ -127,8 +127,8 @@ function App() {
                 </Grid>
                 <Grid item xs={6}>
                     <Paper className={classes.paper}>
-                        <h2>Log</h2>
-                        <DebugLog />
+                        <h2>Crawler Controls</h2>
+                        <CrawlerControls />
                     </Paper>
                 </Grid>
             </Grid>

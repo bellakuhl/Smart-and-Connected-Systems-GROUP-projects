@@ -69,17 +69,19 @@ App.get("/crawler-event", async function (req, resp) {
 App.post("/crawler-event", async function (req: AuthedRequest, resp) {
     let data = req.body;
     if (!data.beacon_id || data.split_time == undefined) {
+        console.log(`Invalid request body: ${data}`);
         return resp.status(422).json({message: "beacon_id and split_time are required"});
     }
 
     try {
         let record: db.ICrawlerEventRecord = {
-            crawler_id: req.user.username,
+            crawler_id: "crawler15",
             time: new Date().getTime(),
             event: `Beacon: ${data.beacon_id}`,
             split_time: data.split_time
         };
 
+        console.log(`Inserting split time: ${JSON.stringify(record)}`);
         let rec = await db.crawlerEvent.insert(record);
         resp.status(200).json();
         WebSocket.emit(WEBSOCKET_EVENT.CRAWLER_EVENT, JSON.stringify({record: rec}));
