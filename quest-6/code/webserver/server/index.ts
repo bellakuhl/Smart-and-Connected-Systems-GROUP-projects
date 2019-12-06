@@ -31,37 +31,6 @@ enum WEBSOCKET_EVENT {
     CRAWLER_LOG = "crawler-log"
 };
 
-async function RequireAuth(req: AuthedRequest, resp: express.Response, next: any)
-{
-    // Basic auth middleware adapted from
-    // https://jasonwatmore.com/post/2018/09/24/nodejs-basic-authentication-tutorial-with-example-api
-    if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
-        return resp.status(401).json({ message: 'Missing Authorization Header' });
-    }
-
-    const base64Credentials =  req.headers.authorization.split(' ')[1];
-    const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-    const [username, password] = credentials.split(':');
-    try {
-        let data = await db.superUser.get(username, password);
-        if (Array.isArray(data) && Array.length == 1) {
-            req.user = data;
-            req.
-            next();
-        }
-        else if (data) {
-            req.user = data;
-            next();
-        }
-        else {
-            resp.status(401).json({ message: 'Invalid Authentication Credentials' });
-        }
-    }
-    catch (err) {
-        return resp.status(401).json({ message: 'Invalid Authentication Credentials' });
-    }
-}
-
 App.get("/crawler-event", async function (req, resp) {
     let query = req.query;
     let dbQuery: db.ICrawlerEventQuery = {};
@@ -97,7 +66,7 @@ App.get("/crawler-event", async function (req, resp) {
 });
 
 // Only an authorized crawler can log events.
-App.post("/crawler-event", RequireAuth, async function (req: AuthedRequest, resp) {
+App.post("/crawler-event", async function (req: AuthedRequest, resp) {
     let data = req.body;
     if (!data.beacon_id || data.split_time == undefined) {
         return resp.status(422).json({message: "beacon_id and split_time are required"});
