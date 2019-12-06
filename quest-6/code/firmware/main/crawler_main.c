@@ -127,12 +127,14 @@ static void side_distance_monitor()
 
 static bool should_turn_left()
 {
-//    return collision_dist <= 310;
+    // return collision_dist <= 50; // JR - Test
+
+    // return collision_dist <= 310;
 
     // With more responsive sensor readings I want
     // to try this again.
-    // return collision_dist <= 260;
-    return collision_dist <= 50;
+    return collision_dist <= 260;
+
 }
 
 static int reading_count = 0;
@@ -264,9 +266,9 @@ static void crawl_autonomous_task()
                 crawler_log("Turn Finished: %.2f\n", total_revolutions);
                 crawler_steering_set_value(PWM_NEUTRAL_US);
                 crawler_auto_state = CRAWL_AUTO_STRAIGHT;
-                beacon_ids[0] = -1; //JR - test auto
-                beacon_ids[1] = -1; //JR - test auto
-                beacon_ids[2] = -1; //JR - test auto
+                // beacon_ids[0] = -1; //JR - test auto
+                // beacon_ids[1] = -1; //JR - test auto
+                // beacon_ids[2] = -1; //JR - test auto
             }
         }
 
