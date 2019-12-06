@@ -131,7 +131,7 @@ UDP_Socket.on("message", function (message, remote) {
 /*
     Crawler Control Endpoints
 */
-interface ICralwerCommand {
+interface ICrawlerCommand {
     command: number;
     value: number;
 }
@@ -148,7 +148,7 @@ export enum CrawlerCommand {
 };
 
 
-function serialize_data(data: ICralwerCommand) {
+function serialize_data(data: ICrawlerCommand) {
     var bits = new Uint8Array(3);
     bits[0] = data.command;
     bits[1] = data.value >> 0 & 0xFF;
@@ -209,11 +209,6 @@ App.post("/crawler-command/stop", function (request, response) {
         response.status(500).send("Error sending stop command.");
     });
 });
-
-interface ICralwerForwardCommandReq {
-    milliseconds?: number;
-    speed?: number;
-}
 
 App.post("/crawler-command/control", function (request, response) {
     const body = request.body;
