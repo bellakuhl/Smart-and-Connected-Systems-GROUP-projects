@@ -148,10 +148,10 @@ static void update_sensor_readings()
 
         reading_count = (reading_count + 1) % 20;
         if (reading_count == 0) {
-            crawler_log("Front: %.2d\tBack: %.2d\tSteering Val: %.2d",
-                        right_side_front_dist, right_side_rear_dist, crawler_steering_get_value());
-            crawler_log("PC: %d, LPC: %d, Delta: %d, Total: %.2f", current_pulse_count, last_pulse_count,  total_revolutions);
-            crawler_log("Lidar Lite: %.2f\n", collision_dist);
+            // crawler_log("Front: %.2d\tBack: %.2d\tSteering Val: %.2d",
+            //             right_side_front_dist, right_side_rear_dist, crawler_steering_get_value());
+            // crawler_log("PC: %d, LPC: %d, Delta: %d, Total: %.2f", current_pulse_count, last_pulse_count,  total_revolutions);
+            // crawler_log("Lidar Lite: %.2f\n", collision_dist);
         }
 
         vTaskDelay(100/portTICK_PERIOD_MS);
@@ -177,6 +177,19 @@ static void crawl_autonomous_task()
     float start_revolutions = 0;
     while (1)
     {
+        if (crawler_state == CRAWL_STATE_AUTO && collision_dist <= 30.0f)
+        {
+            collision_trigger_count++;
+            if (collision_trigger_count >= 2) {
+                crawler_log("Stop Distance: %f\n", collision_dist);
+                crawler_stop();
+                crawler_state = CRAWL_STATE_STOPPED;
+            }
+        }
+        else {
+            collision_trigger_count = 0;
+        }
+
         if (crawler_state != CRAWL_STATE_AUTO) {
             // crawler_log("Not in auto mode");
             vTaskDelay(100/portTICK_PERIOD_MS);
@@ -187,19 +200,7 @@ static void crawl_autonomous_task()
             continue;
         }
 
-        if (collision_dist <= 0.0f)
-        {
-            collision_trigger_count++;
-            if (collision_trigger_count >= 2) {
-                crawler_log("Stop Distance: %f\n", collision_dist);
-                crawler_stop();
-                crawler_state = CRAWL_STATE_STOPPED;
-            }
-            else {
-                collision_trigger_count = 0;
-            }
-        }
-        else if (crawler_auto_state == CRAWL_AUTO_BEACON)
+        if (crawler_auto_state == CRAWL_AUTO_BEACON)
         {
             if (beacon_count > 0) {
                 // TODO: Log the split time to the server
@@ -358,6 +359,10 @@ static void crawler_cmd_recv()
                 case CMD_START_AUTO:
                     crawler_state = CRAWL_STATE_AUTO;
                     if (crawler_auto_mode_task == NULL) {
+                        alphadisplay_write_ascii(0, 'A');
+                        alphadisplay_write_ascii(1, 'U');
+                        alphadisplay_write_ascii(2, 'T');
+                        alphadisplay_write_ascii(3, '0');
                         xTaskCreate(crawl_autonomous_task, "", 4096, NULL, configMAX_PRIORITIES-1, &crawler_auto_mode_task);
                     }
                     break;
