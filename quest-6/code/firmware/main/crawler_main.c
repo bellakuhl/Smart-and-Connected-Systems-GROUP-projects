@@ -93,7 +93,6 @@ static void crawler_stop()
 }
 
 
-
 static void distance_sensor_task()
 {
     int count = 0;
@@ -192,34 +191,31 @@ static void crawl_autonomous_task()
         else if (crawler_auto_state == CRAWL_AUTO_BEACON)
         {
             // TODO: Log the split time to the server
-            float split = beacon_rx_get_split_time();
+            float split = beacon_count == 1 ? 0 : beacon_rx_get_split_time();
             server_log_split_time(msg.id, split, NULL, NULL, 0);
 
-            beacon_count++;
             // If the beacon
             crawler_log("Encountered beacons: %d\n", beacon_count);
             if (beacon_count >= 3) {
                 crawler_log("Third beacon encountered, exiting auto mode.\n");
                 crawler_state = CRAWL_STATE_STOPPED;
+                crawler_stop();
                 break;
             }
             else {
-                while (1)
-                {
-                    if (msg.color == 'R') {
-                        // If the light is red, stop and keep draining
-                        // the queue
-                        crawler_log("Stopping for red light");
-                        crawler_stop();
-                    }
-                    else {
-                        crawler_log("Green Light!");
-                        crawler_auto_state = CRAWL_AUTO_STRAIGHT;
-                        break;
-                    }
-                    crawler_log("Waiting for beacon message.");
-                    xQueueReceive(beaconMsgQueue, &msg, 0);
+                if (msg.color == 'R') {
+                    // If the light is red, stop and keep draining
+                    // the queue
+                    crawler_log("Stopping for red light");
+                    crawler_stop();
                 }
+                else {
+                    crawler_log("Green Light!");
+                    crawler_auto_state = CRAWL_AUTO_STRAIGHT;
+                    break;
+                }
+                crawler_log("Waiting for beacon message.");
+                xQueueReceive(beaconMsgQueue, &msg, 0);
             }
         }
         else if (crawler_auto_state == CRAWL_AUTO_STRAIGHT)
@@ -256,23 +252,27 @@ static void crawl_autonomous_task()
             }
         }
 
-        // Draing the beacon message queue looking for new beacon id
-        while (xQueueReceive(beaconMsgQueue, &msg, 5) != pdTRUE)
+        // Draining the beacon message queue looking for new beacon id
+        if (crawler_auto_state != CRAWL_AUTO_BEACON)
         {
-            bool seen = false;
-            for (int i = 0; i == beacon_count; i++) {
-                if (beacon_ids[i] == msg.id) {
-                    seen = true;
+            while (xQueueReceive(beaconMsgQueue, &msg, 0) != pdTRUE)
+            {
+                bool seen = false;
+                for (int i = 0; i == beacon_count; i++) {
+                    if (beacon_ids[i] == msg.id) {
+                        seen = true;
+                        break;
+                    }
+                }
+
+                // We have not seen this beacon
+                if (!seen) {
+                    crawler_auto_state = CRAWL_AUTO_BEACON;
+                    beacon_ids[beacon_count++] = msg.id;
                     break;
                 }
             }
 
-            // We have not seen this beacon
-            if (!seen) {
-                crawler_auto_state = CRAWL_AUTO_BEACON;
-                beacon_ids[beacon_count++] = msg.id;
-                break;
-            }
         }
 
         vTaskDelay(100/portTICK_PERIOD_MS);
@@ -346,13 +346,13 @@ static void crawler_cmd_recv()
                     }
                     break;
                 case CMD_STOP_AUTO:
-                    crawler_stop();
                     // This should caue the auto task to return, but we need
                     // to delete the task anyway.
                     crawler_state = CRAWL_STATE_STOPPED;
                     if (crawler_auto_mode_task != NULL) {
                         vTaskDelete(crawler_auto_mode_task);
                     }
+                    crawler_stop();
                     break;
                 case CMD_CALIBRATE:
                     crawler_calibrate();
@@ -395,7 +395,7 @@ void app_main()
     alphadisplay_write_ascii(2, 'B');
     alphadisplay_write_ascii(3, 'R');
     crawler_control_init();
-    // crawler_calibrate();
+    crawler_calibrate();
     crawler_steering_set_value(PWM_NEUTRAL_US);
     vTaskDelay(2000/portTICK_PERIOD_MS);
 
