@@ -66,11 +66,13 @@ export function CrawlerControls(props: ICrawlerControlProps) {
         window.addEventListener("keypress", function (evt: KeyboardEvent) {
             if (evt.key == "f") {
                 evt.preventDefault();
-                postESCValue(1450);
+                postESCValue(1400);
+                // postESCValue(Math.max(escValue - 50, PWM_MIN));
             }
             else if (evt.key == "b" || evt.key == "r") {
                 evt.preventDefault();
-                postESCValue(1650);
+                postESCValue(1600);
+                // postESCValue(Math.min(escValue + 50, PWM_MAX));
             }
             else if (evt.key == " " || evt.key == "s") {
                 evt.preventDefault();
@@ -162,12 +164,12 @@ export function CrawlerControls(props: ICrawlerControlProps) {
                     </Button>
                 </Grid>
                 <Grid item xs={6}>
-                    <h3>Steering Controls</h3>
+                    {/* <h3>Steering Controls</h3>
                     <div className="crawler-steering" ref={(el) => steeringDiv = el} onMouseMove={throttle(updateSteering, 300)}>
                         <div className="steering-label left"></div>
                         <div className="steering-label center"></div>
                         <div className="steering-label right"></div>
-                    </div>
+                    </div> */}
                 </Grid>
             </Grid>
         </div>

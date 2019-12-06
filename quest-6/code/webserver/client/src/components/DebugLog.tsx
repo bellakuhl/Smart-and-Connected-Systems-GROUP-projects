@@ -7,13 +7,15 @@ interface IDebugLogProps {
 }
 
 const socket = io(window.location.origin);
+const messages: string[] = [];
 export function DebugLog(props: IDebugLogProps) {
     let end: Element;
-    const [messages, setMessages] = React.useState<string[]>([]);
+    const [m, setMessages] = React.useState<string[]>([]);
 
     React.useEffect(function () {
         socket.on("crawler-log", function (data: string) {
-            setMessages(messages.concat([data]));
+            messages.push(data)
+            setMessages([data]);
         });
     }, []);
 

@@ -40,7 +40,7 @@
 // as the default.
 #define CRAWLER_START_PWM (PWM_NEUTRAL_US - 150)
 
-const static char *TAG = "CRAWLER";
+const static char *TAG = "Crawler Main";
 
 enum CrawlerCommands {
     CMD_ESC = 0,
@@ -148,13 +148,12 @@ static void crawler_cmd_recv()
 
 void distance_sensor_task()
 {
-    lidar_lite_init();
-
     int triggered_count = 0;
+    int count = 0;
     while (1)
     {
         float dist = lidar_lite_get_distance();
-        crawler_log("Distance: %f\n", dist);
+        // crawler_log("Distance: %f\n", dist);
         if (dist <= 0.38f && crawler_state == CRAWL_STATE_AUTO) {
             triggered_count++;
             if (triggered_count >= 2) {
@@ -164,6 +163,10 @@ void distance_sensor_task()
         }
         else {
             triggered_count = 0;
+        }
+        count = (count + 1) % 20;
+        if (count == 0) {
+            crawler_log("Lidar Lite Distance: %.3f\n", dist);
         }
         vTaskDelay(100/portTICK_PERIOD_MS);
     }
@@ -184,17 +187,13 @@ void crawler_speed_monitor()
         speed = dist/(period/1000.0f);
         speed *= crawler_get_direction();
 
+        alphadisplay_write_float(speed);
+        last_pulse_count = pulse_count;
+
         if (crawler_state == CRAWL_STATE_AUTO)
         {
-            //crawler_log("Speed: %.2f, PC: %u, LPC: %u, Delta: %u\n",
-            //        speed, pulse_count, last_pulse_count, pulse_count - last_pulse_count);
-            alphadisplay_write_float(speed);
-            last_pulse_count = pulse_count;
-
             float adjustment = PID(speed);
             float pwm_adjust = adjustment;
-
-            //crawler_log("Adjustment: %f\n", adjustment);
             crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
         }
 
@@ -234,6 +233,7 @@ void lidar_monitor()
 
 void app_main()
 {
+    lidar_lite_init();
     alphadisplay_init();
     vTaskDelay(1000/portTICK_PERIOD_MS);
     alphadisplay_write_ascii(0, 'I');
@@ -259,7 +259,7 @@ void app_main()
     alphadisplay_write_ascii(2, 'B');
     alphadisplay_write_ascii(3, 'R');
     crawler_control_init();
-    crawler_calibrate();
+    // crawler_calibrate();
     crawler_steering_set_value(PWM_NEUTRAL_US);
     vTaskDelay(2000/portTICK_PERIOD_MS);
 
@@ -271,7 +271,7 @@ void app_main()
 
     xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(distance_sensor_task, "distance_sensor_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
-    xTaskCreate(lidar_monitor, "lidar_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
+    // xTaskCreate(lidar_monitor, "lidar_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     alphadisplay_write_ascii(0, '0');
     alphadisplay_write_ascii(1, '0');
     alphadisplay_write_ascii(2, '0');

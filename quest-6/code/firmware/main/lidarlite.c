@@ -23,7 +23,7 @@
 #define NACK_VAL                           0xFF // i2c nack value
 
 // Lidar
-#define SLAVE_ADDR                         0x62 
+#define SLAVE_ADDR                         0x62
 #define MULTI_BYTE                         0x8f
 #define UPPER_BYTE                         0x0F
 #define LOWER_BYTE                         0x10
@@ -147,14 +147,12 @@ uint8_t readRegister(uint8_t reg) {
 
 // function to get distance
 float lidar_lite_get_distance() {
-  printf("Reading\n");
-  
   writeRegister(0x00, 0x04); // Write 0x04 to 0x00
   vTaskDelay(20 / portTICK_RATE_MS);
   uint8_t high_byte = readRegister(0x0F);
   uint8_t low_byte = readRegister(0x10);
   uint16_t distance = low_byte | (high_byte<<8);
-  
+
   //printf("%.2d\n", (distance) );
   return distance;
 }
@@ -178,7 +176,7 @@ void app_main() {
   i2c_master_init();
   i2c_scanner();
 
-  
+
   // Create task to poll ADXL343
   xTaskCreate(distance,"distance", 4096, NULL, 5, NULL);
 }

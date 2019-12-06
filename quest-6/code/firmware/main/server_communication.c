@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "esp_log.h"
+#include "server_communication.h"
 #include "lwip/err.h"
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
@@ -108,6 +109,7 @@ static void server_send_log(const char *msg)
         ESP_LOGE(TAG, "Error sending message: %d\n", err);
     }
 }
+
 
 void crawler_log(const char *format, ...)
 {

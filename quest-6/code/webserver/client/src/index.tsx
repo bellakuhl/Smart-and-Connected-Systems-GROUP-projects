@@ -107,7 +107,7 @@ function App() {
             <Grid container spacing={3}>
                 <Grid item xs={6}>
                     <Paper className={classes.paper}>
-                        <h2>CrawlCam<sup>&trade;</sup></h2>
+                        <h2>Crawl-E Cam<sup>&trade;</sup></h2>
                         <CrawlCam />
                     </Paper>
                 </Grid>

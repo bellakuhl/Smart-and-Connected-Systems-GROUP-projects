@@ -28,7 +28,7 @@ interface AuthedRequest extends express.Request {
 
 enum WEBSOCKET_EVENT {
     CRAWLER_EVENT = "crawler-event",
-    CRAWLER_LOG = "cralwer-log"
+    CRAWLER_LOG = "crawler-log"
 };
 
 async function RequireAuth(req: AuthedRequest, resp: express.Response, next: any)
@@ -124,6 +124,7 @@ App.post("/crawler-event", RequireAuth, async function (req: AuthedRequest, resp
 
 /* Crawler Log Messages */
 UDP_Socket.on("message", function (message, remote) {
+    console.log("Message received");
     WebSocket.emit(WEBSOCKET_EVENT.CRAWLER_LOG, message.toString());
 });
 
@@ -136,7 +137,7 @@ interface ICralwerCommand {
     value: number;
 }
 
-const CRAWLER_IP = "192.168.1.144";
+const CRAWLER_IP = "192.168.1.102";
 const CRAWLER_PORT = 9000;
 
 export enum CrawlerCommand {
