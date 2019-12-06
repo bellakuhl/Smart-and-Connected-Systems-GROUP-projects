@@ -231,10 +231,13 @@ void lidar_monitor()
 }
 
 
+extern void ir_rx_task(void *arg);
+extern void ir_rx_init();
 void app_main()
 {
     lidar_lite_init();
     alphadisplay_init();
+    ir_rx_init();
     vTaskDelay(1000/portTICK_PERIOD_MS);
     alphadisplay_write_ascii(0, 'I');
     alphadisplay_write_ascii(1, 'N');
@@ -271,6 +274,7 @@ void app_main()
 
     xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(distance_sensor_task, "distance_sensor_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
+    xTaskCreate(ir_rx_task, "ir_rx_task", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     // xTaskCreate(lidar_monitor, "lidar_monitor", 4096, NULL, configMAX_PRIORITIES-1, NULL);
     alphadisplay_write_ascii(0, '0');
     alphadisplay_write_ascii(1, '0');
