@@ -113,7 +113,7 @@ static void crawler_speed_monitor()
         crawler_current_speed *= crawler_get_direction();
 
         last_pulse_count = current_pulse_count;
-        alphadisplay_write_float(crawler_current_speed);
+        // alphadisplay_write_float(crawler_current_speed);
         vTaskDelay(speed_monitor_period/portTICK_PERIOD_MS);
     }
 }
@@ -135,7 +135,6 @@ static void side_distance_monitor()
 static bool should_turn_left()
 {
     // return collision_dist <= 50; // JR - Test
-
     // return collision_dist <= 310;
 
     // With more responsive sensor readings I want
@@ -154,8 +153,10 @@ static void update_distance_sensors()
 
         reading_count = (reading_count + 1) % 20;
         if (reading_count == 0) {
-            // crawler_log("Front: %.2d\tBack: %.2d\tSteering Val: %.2d",
-            //             right_side_front_dist, right_side_rear_dist, crawler_steering_get_value());
+            crawler_log("Front: %.2d\tBack: %.2d\tSteering Val: %.2d",
+                        right_side_front_dist, right_side_rear_dist,
+                        crawler_steering_get_value());
+
             crawler_log("Lidar Lite: %.2f\n", collision_dist);
         }
 
@@ -168,12 +169,12 @@ static void crawl_autonomous_task()
     PID_set_setpoint(0.7);
 
     crawler_auto_state = CRAWL_AUTO_BEACON;
-    int beacon_ids[3] = {-1};
     int beacon_count = 0;
     int collision_trigger_count = 0;
     int loop_period_ms = 20;
     int pid_period_ms = speed_monitor_period / loop_period_ms;
     int last_pid_control = 0;
+    uint8_t last_beacon_id = -1;
 
     BeaconMsg_t msg;
 
@@ -182,13 +183,15 @@ static void crawl_autonomous_task()
     xTaskCreate(beacon_rx_task, "beacon_rx_task", 4096, NULL,
                 configMAX_PRIORITIES-1, &beacon_task);
 
+    crawler_steering_set_value(PWM_NEUTRAL_US);
+
     float start_revolutions = 0;
     while (1)
     {
-        if (crawler_state == CRAWL_STATE_AUTO && collision_dist <= 30.0f)
+        if (crawler_state == CRAWL_STATE_AUTO && collision_dist < 30.0f)
         {
             collision_trigger_count++;
-            if (collision_trigger_count >= 2) {
+            if (collision_trigger_count >= 20) {
                 crawler_log("Stop Distance: %f\n", collision_dist);
                 crawler_stop();
                 crawler_state = CRAWL_STATE_STOPPED;
@@ -214,7 +217,7 @@ static void crawl_autonomous_task()
                 // TODO: Log the split time to the server
                 float split = beacon_count == 1 ? 0 : beacon_rx_get_time();
                 server_log_split_time(msg.id, split, NULL, NULL, 0);
-                // alphadisplay_write_float(split);
+                alphadisplay_write_float(split);
             }
 
             if (beacon_count >= 3) {
@@ -223,7 +226,7 @@ static void crawl_autonomous_task()
                 crawler_stop();
             }
             else if (beacon_count > 0) {
-                crawler_log("Waiting for a green lite");
+                crawler_log("Waiting for a green lite: %c", msg.color);
                 while (1) {
                     if (msg.color == 'R') {
                         // If the light is red, stop and keep draining
@@ -256,7 +259,6 @@ static void crawl_autonomous_task()
                 else {
                     float adjustment = PID(crawler_current_speed);
                     float pwm_adjust = adjustment;
-                    printf("Adjustment: %.3f\n", adjustment);
                     crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
                     last_pid_control = 0;
                 }
@@ -290,29 +292,22 @@ static void crawl_autonomous_task()
                 crawler_log("Turn Finished: %.2f\n", total_revolutions);
                 crawler_steering_set_value(PWM_NEUTRAL_US);
                 crawler_auto_state = CRAWL_AUTO_STRAIGHT;
-                // beacon_ids[0] = -1; //JR - test auto
-                // beacon_ids[1] = -1; //JR - test auto
-                // beacon_ids[2] = -1; //JR - test auto
+                last_beacon_id = -1;
             }
         }
 
         // Draining the beacon message queue looking for new beacon id
         while (xQueueReceive(beaconMsgQueue, &msg, 0) == pdTRUE)
         {
-            crawler_log("Reading queue");
-            bool seen = false;
-            for (int i = 0; i < beacon_count; i++) {
-                if (beacon_ids[i] == msg.id) {
-                    seen = true;
-                    break;
-                }
-            }
+            crawler_log("Reading queue: %d", msg.id);
+            bool seen = last_beacon_id == msg.id;
 
             // We have not seen this beacon
             if (!seen) {
                 crawler_auto_state = CRAWL_AUTO_BEACON;
-                beacon_ids[beacon_count++] = msg.id;
-                crawler_log("New beacon found: %d (total - %d)\n", msg.id, beacon_count);
+                beacon_count++;
+                last_beacon_id = msg.id;
+                crawler_log("Beacon found: %d (total - %d)\n", msg.id, beacon_count);
                 break;
             }
         }
