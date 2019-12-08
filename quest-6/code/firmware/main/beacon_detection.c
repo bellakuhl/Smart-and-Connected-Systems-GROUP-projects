@@ -23,7 +23,7 @@
 #define RXD_PIN (GPIO_NUM_25)
 #define TXD_PIN (GPIO_NUM_12)
 
-static const int RX_BUF_SIZE = 256;
+static const int RX_BUF_SIZE = 129;
 
 static QueueHandle_t msgQueue = NULL;
 
@@ -97,17 +97,21 @@ void beacon_rx_task(void *arg)
         if (rxBytes > 0) {
             for (int i = 0; i < rxBytes; i++) {
                 if (data[i] == 0x1B && msgQueue != NULL && i+3 < rxBytes) {
-                    //char cs = data[i]^data[i+1]^data[i+2];
+                    char cs = data[i]^data[i+1]^data[i+2];
 
-                    if (data[i+1] != 'R' && data[i+1] != 'G' && data[i+1] != 'Y') {
+                    //if (data[i+1] != 'R' && data[i+1] != 'G' && data[i+1] != 'Y') {
+                    if (cs != data[i+3]) {
                         crawler_log("Unknown signal: %d", data[i+1]);
                     }
                     else {
                         BeaconMsg_t msg = { .color=data[i+1], .id=data[i+2] };
+
+                        crawler_log("Received Msg: %d - %c", msg.id, msg.color);
                         BaseType_t res = xQueueSendToBack(msgQueue, &msg, 5);
                         if (res != pdTRUE) {
                             crawler_log("Error queing beacon message: %d", res);
                         }
+                        uart_flush(UART_NUM_1);
                     }
                     break;
                 }
