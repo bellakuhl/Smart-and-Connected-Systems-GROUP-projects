@@ -160,15 +160,44 @@ export function CrawlerControls(props: ICrawlerControlProps) {
         <div>
             <Grid container spacing={3}>
                 <Grid item xs={12}>
-                    <p>
-                        Use the start and stop buttons to the right to start and stop
-                        automous driving. For manual controls, press f to move forward,
-                        b or r for revert, and press s or the space bar to stop.
-                    </p>
-                    <p>Use the steering pad on the right to steer the crawler.
-                    The gray region is steers straight.</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Action</th>
+                                <th>Keys</th>
+                                <th>Mode</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Auto Mode</td>
+                                <td>a</td>
+                                <td>Manual</td>
+                            </tr>
+                            <tr>
+                                <td>Stop Auto Mode</td>
+                                <td>p</td>
+                                <td>Auto</td>
+                            </tr>
+                            <tr>
+                                <td>Increment Forward</td>
+                                <td>f</td>
+                                <td>Manual</td>
+                            </tr>
+                            <tr>
+                                <td>Reverse</td>
+                                <td>r or b</td>
+                                <td>Manual</td>
+                            </tr>
+                            <tr>
+                                <td>Stop</td>
+                                <td>s or space</td>
+                                <td>Manual</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </Grid>
-                <Grid item xs={6}>
+                {/* <Grid item xs={6}>
                     <h3>Mode Controls</h3>
                     <Button variant="contained" onClick={sendCommandButton("/start-auto")}>
                         Start Auto
@@ -178,13 +207,13 @@ export function CrawlerControls(props: ICrawlerControlProps) {
                     </Button>
                 </Grid>
                 <Grid item xs={6}>
-                    {/* <h3>Steering Controls</h3>
+                    <h3>Steering Controls</h3>
                     <div className="crawler-steering" ref={(el) => steeringDiv = el} onMouseMove={throttle(updateSteering, 300)}>
                         <div className="steering-label left"></div>
                         <div className="steering-label center"></div>
                         <div className="steering-label right"></div>
-                    </div> */}
-                </Grid>
+                    </div>
+                </Grid> */}
             </Grid>
         </div>
    );

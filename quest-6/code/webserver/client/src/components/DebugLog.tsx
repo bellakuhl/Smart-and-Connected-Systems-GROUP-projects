@@ -2,9 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as io from "socket.io-client";
 
-interface IDebugLogProps {
-
-}
+interface IDebugLogProps {}
 
 const socket = io(window.location.origin);
 const messages: string[] = [];
@@ -18,10 +16,6 @@ export function DebugLog(props: IDebugLogProps) {
             setMessages([data]);
         });
     }, []);
-
-    React.useEffect(function () {
-        // end.scrollIntoView({behavior: "smooth"});
-    });
 
     return (
         <div className="crawler-log">
