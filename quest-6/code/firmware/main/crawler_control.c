@@ -111,13 +111,11 @@ static void crawler_control_task()
                                 max(esc_pwm_us - esc_delta, esc_pwm_setpoint) :
                                 min(esc_pwm_us + esc_delta, esc_pwm_setpoint);
 
-            printf("Setting esc to: %d\n", esc_pwm_us);
             mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER,
                                 MCPWM_OPR_A, esc_pwm_us);
         }
 
         if (steer_pwm_us != steer_pwm_setpoint) {
-            printf("Setting steering to: %d\n", steer_pwm_us);
             steer_pwm_us = steer_pwm_setpoint < steer_pwm_us ?
                                 max(steer_pwm_us - steer_delta, steer_pwm_setpoint) :
                                 min(steer_pwm_us + steer_delta, steer_pwm_setpoint);

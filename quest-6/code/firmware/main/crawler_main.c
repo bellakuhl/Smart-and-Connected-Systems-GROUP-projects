@@ -100,16 +100,22 @@ static void distance_sensor_task()
     collision_dist = lidar_lite_get_distance();
 }
 
-static float period = 1000;
+static float speed_monitor_period = 2000;
 static void crawler_speed_monitor()
 {
-    current_pulse_count = pulsecounter_get_count();
-    float revolutions = (float)(current_pulse_count - last_pulse_count)/6.0f;
-    total_revolutions += revolutions;
-    float dist = 3.14159 * DIAMETER_M * revolutions;
-    crawler_current_speed = dist/(period/1000.0f);
-    crawler_current_speed *= crawler_get_direction();
-    last_pulse_count = current_pulse_count;
+    while (1)
+    {
+        current_pulse_count = pulsecounter_get_count();
+        float revolutions = (float)(current_pulse_count - last_pulse_count)/6.0f;
+        total_revolutions += revolutions;
+        float dist = 3.14159 * DIAMETER_M * revolutions;
+        crawler_current_speed = dist/(speed_monitor_period/1000.0f);
+        crawler_current_speed *= crawler_get_direction();
+
+        last_pulse_count = current_pulse_count;
+        alphadisplay_write_float(crawler_current_speed);
+        vTaskDelay(speed_monitor_period/portTICK_PERIOD_MS);
+    }
 }
 
 #define LIDAR_FRONT_UART UART_NUM_0
@@ -139,20 +145,18 @@ static bool should_turn_left()
 }
 
 static int reading_count = 0;
-static void update_sensor_readings()
+static void update_distance_sensors()
 {
     while (1)
     {
         distance_sensor_task();
-        crawler_speed_monitor();
         side_distance_monitor();
 
         reading_count = (reading_count + 1) % 20;
         if (reading_count == 0) {
             // crawler_log("Front: %.2d\tBack: %.2d\tSteering Val: %.2d",
             //             right_side_front_dist, right_side_rear_dist, crawler_steering_get_value());
-            // crawler_log("PC: %d, LPC: %d, Delta: %d, Total: %.2f", current_pulse_count, last_pulse_count,  total_revolutions);
-            // crawler_log("Lidar Lite: %.2f\n", collision_dist);
+            crawler_log("Lidar Lite: %.2f\n", collision_dist);
         }
 
         vTaskDelay(100/portTICK_PERIOD_MS);
@@ -167,6 +171,9 @@ static void crawl_autonomous_task()
     int beacon_ids[3] = {-1};
     int beacon_count = 0;
     int collision_trigger_count = 0;
+    int loop_period_ms = 20;
+    int pid_period_ms = speed_monitor_period / loop_period_ms;
+    int last_pid_control = 0;
 
     BeaconMsg_t msg;
 
@@ -207,7 +214,7 @@ static void crawl_autonomous_task()
                 // TODO: Log the split time to the server
                 float split = beacon_count == 1 ? 0 : beacon_rx_get_time();
                 server_log_split_time(msg.id, split, NULL, NULL, 0);
-                alphadisplay_write_float(split);
+                // alphadisplay_write_float(split);
             }
 
             if (beacon_count >= 3) {
@@ -241,9 +248,24 @@ static void crawl_autonomous_task()
         }
         else if (crawler_auto_state == CRAWL_AUTO_STRAIGHT)
         {
-            // float adjustment = PID(crawler_current_speed);
-            // float pwm_adjust = adjustment;
-            crawler_esc_set_value(CRAWLER_START_PWM);
+            if (last_pid_control == 0) {
+                if (crawler_current_speed == 0)
+                {
+                    crawler_esc_set_value(CRAWLER_START_PWM);
+                }
+                else {
+                    float adjustment = PID(crawler_current_speed);
+                    float pwm_adjust = adjustment;
+                    printf("Adjustment: %.3f\n", adjustment);
+                    crawler_esc_set_value(crawler_esc_get_value() - pwm_adjust);
+                    last_pid_control = 0;
+                }
+            }
+            else {
+                // We only want to use PID control at the same interface as the
+                // speed monitor so things don't go crazy.
+                last_pid_control = last_pid_control + 1 % pid_period_ms;
+            }
 
             // // Keep us going straight
             // uint32_t diff = right_side_rear_dist - right_side_front_dist;
@@ -295,7 +317,7 @@ static void crawl_autonomous_task()
             }
         }
 
-        vTaskDelay(20/portTICK_PERIOD_MS);
+        vTaskDelay(loop_period_ms/portTICK_PERIOD_MS);
     }
 }
 
@@ -371,10 +393,11 @@ static void crawler_cmd_recv()
                     // This should caue the auto task to return, but we need
                     // to delete the task anyway.
                     crawler_state = CRAWL_STATE_STOPPED;
+                    crawler_stop();
                     if (crawler_auto_mode_task != NULL) {
                         vTaskDelete(crawler_auto_mode_task);
+                        crawler_auto_mode_task = NULL;
                     }
-                    crawler_stop();
                     break;
                 case CMD_CALIBRATE:
                     crawler_calibrate();
@@ -417,16 +440,18 @@ void app_main()
     alphadisplay_write_ascii(2, 'B');
     alphadisplay_write_ascii(3, 'R');
     crawler_control_init();
-    crawler_calibrate();
+    // crawler_calibrate();
     crawler_steering_set_value(PWM_NEUTRAL_US);
     vTaskDelay(2000/portTICK_PERIOD_MS);
 
     PID_init();
 
     crawler_control_start();
-    xTaskCreate(update_sensor_readings, "update_sensors",
+    xTaskCreate(update_distance_sensors, "update_sensors",
                 4096, NULL, configMAX_PRIORITIES-2, NULL);
 
+    xTaskCreate(crawler_speed_monitor, "crawler_speed_monitor",
+                4096, NULL, configMAX_PRIORITIES-2, NULL);
 #ifdef WIFI_ENABLED
     xTaskCreate(
         crawler_cmd_recv,

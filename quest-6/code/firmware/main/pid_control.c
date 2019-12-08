@@ -22,7 +22,7 @@ static int dt_complete = 0;
 static float previous_error = 0;
 static float integral = 0;
 
-static float KP = 30;
+static float KP = 3;
 static float KI = 0;
 static float KD = 0; // Disabled
 
