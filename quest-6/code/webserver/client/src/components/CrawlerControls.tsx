@@ -86,6 +86,10 @@ export function CrawlerControls(props: ICrawlerControlProps) {
                 evt.preventDefault();
                 sendCommandButton("/stop")();
             }
+            else if (evt.key == "g") {
+                evt.preventDefault();
+                sendCommandButton("/green-light")();
+            }
         });
 
         window.addEventListener("keydown", function (evt) {

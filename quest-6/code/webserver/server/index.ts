@@ -115,7 +115,8 @@ export enum CrawlerCommand {
     CMD_STEERING = 1,
     CMD_START_AUTO = 2,
     CMD_STOP_AUTO = 3,
-    CMD_CALIBRATE = 4
+    CMD_CALIBRATE = 4,
+    CMD_GREEN_LIGHT = 5
 };
 
 
@@ -175,6 +176,14 @@ App.post("/crawler-command/start-auto", function (request, response) {
 
 App.post("/crawler-command/stop", function (request, response) {
     send_command(CrawlerCommand.CMD_STOP_AUTO, 0).then(function (value) {
+        response.status(200).send("Stop command sent.");
+    }).catch(function (err) {
+        response.status(500).send("Error sending stop command.");
+    });
+});
+
+App.post("/crawler-command/green-light", function (request, response) {
+    send_command(CrawlerCommand.CMD_GREEN_LIGHT, 0).then(function (value) {
         response.status(200).send("Stop command sent.");
     }).catch(function (err) {
         response.status(500).send("Error sending stop command.");

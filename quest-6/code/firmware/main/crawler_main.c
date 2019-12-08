@@ -48,7 +48,8 @@ enum CrawlerCommands {
     CMD_STEER,
     CMD_START_AUTO,
     CMD_STOP_AUTO,
-    CMD_CALIBRATE
+    CMD_CALIBRATE,
+    CMD_GREEN_LIGHT
 };
 
 typedef enum {
@@ -100,7 +101,7 @@ static void distance_sensor_task()
     collision_dist = lidar_lite_get_distance();
 }
 
-static float speed_monitor_period = 2000;
+static float speed_monitor_period = 1000;
 static void crawler_speed_monitor()
 {
     while (1)
@@ -192,7 +193,7 @@ static void crawl_autonomous_task()
         if (crawler_state == CRAWL_STATE_AUTO && collision_dist < 30.0f)
         {
             collision_trigger_count++;
-            if (collision_trigger_count >= 20) {
+            if (collision_trigger_count >= 60) {
                 crawler_log("Stop Distance: %f\n", collision_dist);
                 crawler_stop();
                 crawler_state = CRAWL_STATE_STOPPED;
@@ -298,7 +299,7 @@ static void crawl_autonomous_task()
             // Turn all the way left, do not control speed during turn! (yet...)
             // we're intentionally not blocking in this state so collision
             // detection will keep us from hitting anything
-            if (total_revolutions - start_revolutions >= 6.5) {
+            if (total_revolutions - start_revolutions >= 5.0) {
                 crawler_log("Turn Finished: %.2f\n", total_revolutions);
                 crawler_steering_set_value(PWM_NEUTRAL_US);
                 crawler_auto_state = CRAWL_AUTO_STRAIGHT;
@@ -370,6 +371,7 @@ static void crawler_cmd_recv()
             CrawlerCmd_t *data = (CrawlerCmd_t *)rx_buffer;
             crawler_log("Received Message - Cmd: %d, value %d\n",
                          data->cmd, data->value);
+            BeaconMsg_t msg;
             switch(data->cmd) {
                 case CMD_ESC:
                     if (crawler_state != CRAWL_STATE_AUTO) {
@@ -383,6 +385,10 @@ static void crawler_cmd_recv()
                     if (crawler_state != CRAWL_STATE_AUTO) {
                         crawler_steering_set_value(data->value);
                     }
+                    break;
+                case CMD_GREEN_LIGHT:
+                    msg.color='G'; msg.id=100;
+                    BaseType_t res = xQueueSendToBack(beaconMsgQueue, &msg, 5);
                     break;
                 case CMD_START_AUTO:
                     crawler_state = CRAWL_STATE_AUTO;
