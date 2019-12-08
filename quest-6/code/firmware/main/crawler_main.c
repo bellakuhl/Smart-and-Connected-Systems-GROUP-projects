@@ -175,6 +175,7 @@ static void crawl_autonomous_task()
     int pid_period_ms = speed_monitor_period / loop_period_ms;
     int last_pid_control = 0;
     uint8_t last_beacon_id = -1;
+    uint8_t left_turn_count = 0;
 
     BeaconMsg_t msg;
 
@@ -276,10 +277,19 @@ static void crawl_autonomous_task()
             crawler_steering_set_value(PWM_NEUTRAL_US);
 
             if (should_turn_left()) {
-                start_revolutions = total_revolutions;
-                crawler_log("Start Left Turn - Dist: %.2f, Star Rev: %.2f\n", collision_dist, start_revolutions);
-                crawler_steering_set_value(PWM_HIGH_US);
-                crawler_auto_state = CRAWL_AUTO_LEFT_TURN;
+                if (left_turn_count == 2) {
+                    // We missed a beacon,
+                    // but still want to stop
+                    crawler_state = CRAWL_STATE_STOPPED;
+                    crawler_stop();
+                }
+                else {
+                    start_revolutions = total_revolutions;
+                    crawler_log("Start Left Turn - Dist: %.2f, Star Rev: %.2f\n", collision_dist, start_revolutions);
+                    crawler_steering_set_value(PWM_HIGH_US);
+                    crawler_auto_state = CRAWL_AUTO_LEFT_TURN;
+                    left_turn_count++;
+                }
             }
             // Could implement "if should_turn_right here"
         }
