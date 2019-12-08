@@ -286,7 +286,7 @@ static void crawl_autonomous_task()
             else{
                 uint32_t diff = right_side_rear_dist - right_side_front_dist;
                 int value = diff*7 + PWM_NEUTRAL_US;
-                crawler_steering_set_value(value);                
+                crawler_steering_set_value(value);
             }
 
             uint32_t diff = right_side_rear_dist - right_side_front_dist;

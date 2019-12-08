@@ -89,6 +89,7 @@ void beacon_rx_task(void *arg)
    uint8_t* data = (uint8_t*) malloc(RX_BUF_SIZE+1);
    memset(data, 0, RX_BUF_SIZE+1);
 
+
    while (1)
    {
         const int rxBytes = uart_read_bytes(
@@ -99,13 +100,12 @@ void beacon_rx_task(void *arg)
                 if (data[i] == 0x1B && msgQueue != NULL && i+3 < rxBytes) {
                     char cs = data[i]^data[i+1]^data[i+2];
 
-                    //if (data[i+1] != 'R' && data[i+1] != 'G' && data[i+1] != 'Y') {
-                    if (cs != data[i+3]) {
+                    if (data[i+1] != 'R' && data[i+1] != 'G' && data[i+1] != 'Y') {
+                    //if (cs != data[i+3]) {
                         crawler_log("Unknown signal: %d", data[i+1]);
                     }
                     else {
                         BeaconMsg_t msg = { .color=data[i+1], .id=data[i+2] };
-
                         crawler_log("Received Msg: %d - %c", msg.id, msg.color);
                         BaseType_t res = xQueueSendToBack(msgQueue, &msg, 5);
                         if (res != pdTRUE) {
