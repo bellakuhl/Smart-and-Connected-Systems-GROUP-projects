@@ -76,6 +76,7 @@ static uint32_t right_side_rear_dist;
 static QueueHandle_t beaconMsgQueue;
 static float total_revolutions = 0;
 
+
 #pragma pack(push, 1)
 typedef struct {
     // This should be one of the CrawlerCommand values, but
@@ -160,7 +161,7 @@ static void update_sensor_readings()
 
 static void crawl_autonomous_task()
 {
-    PID_set_setpoint(0.3);
+    PID_set_setpoint(0.7);
 
     crawler_auto_state = CRAWL_AUTO_BEACON;
     int beacon_ids[3] = {-1};
@@ -345,7 +346,7 @@ static void crawler_cmd_recv()
             switch(data->cmd) {
                 case CMD_ESC:
                     if (crawler_state != CRAWL_STATE_AUTO) {
-                        mcpwm_set_duty_in_us(ESC_PWM_UNIT, ESC_PWM_TIMER, MCPWM_OPR_A, data->value);
+                        crawler_esc_set_value(data->value);
                         if (data->value != PWM_NEUTRAL_US) {
                             crawler_state = CRAWL_STATE_MANUAL;
                         }
@@ -353,7 +354,7 @@ static void crawler_cmd_recv()
                     break;
                 case CMD_STEER:
                     if (crawler_state != CRAWL_STATE_AUTO) {
-                        mcpwm_set_duty_in_us(STEERING_PWM_UNIT, STEERING_PWM_TIMER, MCPWM_OPR_A, data->value);
+                        crawler_steering_set_value(data->value);
                     }
                     break;
                 case CMD_START_AUTO:
@@ -422,6 +423,7 @@ void app_main()
 
     PID_init();
 
+    crawler_control_start();
     xTaskCreate(update_sensor_readings, "update_sensors",
                 4096, NULL, configMAX_PRIORITIES-2, NULL);
 

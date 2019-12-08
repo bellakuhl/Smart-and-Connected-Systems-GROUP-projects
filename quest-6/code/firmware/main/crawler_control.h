@@ -29,5 +29,6 @@ uint32_t crawler_steering_get_value();
 void crawler_steering_set_value(uint32_t pwm);
 
 int8_t crawler_get_direction();
+void crawler_control_start();
 
 #endif

@@ -66,13 +66,13 @@ export function CrawlerControls(props: ICrawlerControlProps) {
         window.addEventListener("keypress", function (evt: KeyboardEvent) {
             if (evt.key == "f") {
                 evt.preventDefault();
-                postESCValue(1400);
-                // postESCValue(Math.max(escValue - 50, PWM_MIN));
+                // postESCValue(PWM_MIN);
+                postESCValue(Math.max(escValue - 70, PWM_MIN));
             }
             else if (evt.key == "b" || evt.key == "r") {
                 evt.preventDefault();
-                postESCValue(1600);
-                // postESCValue(Math.min(escValue + 50, PWM_MAX));
+                // postESCValue(PWM_MAX);
+                postESCValue(Math.min(escValue + 70, PWM_MAX));
             }
             else if (evt.key == " " || evt.key == "s") {
                 evt.preventDefault();
@@ -82,11 +82,13 @@ export function CrawlerControls(props: ICrawlerControlProps) {
 
         window.addEventListener("keydown", function (evt) {
             if (evt.key == "ArrowLeft") {
-                postSteeringValue(Math.min(steeringValue + 60, PWM_MAX));
+                postSteeringValue(Math.min(steeringValue + 100, PWM_MAX));
+                // postSteeringValue(PWM_MAX);
             }
 
             if (evt.key == "ArrowRight") {
-                postSteeringValue(Math.max(steeringValue - 60, PWM_MIN));
+                postSteeringValue(Math.max(steeringValue - 100, PWM_MIN));
+                postSteeringValue(PWM_MIN);
             }
 
             if (evt.key == "ArrowUp") {
