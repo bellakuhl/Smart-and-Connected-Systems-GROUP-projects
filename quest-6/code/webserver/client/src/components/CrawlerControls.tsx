@@ -78,6 +78,14 @@ export function CrawlerControls(props: ICrawlerControlProps) {
                 evt.preventDefault();
                 escStop();
             }
+            else if (evt.key == "a") {
+                evt.preventDefault();
+                sendCommandButton("/start-auto")();
+            }
+            else if (evt.key == "p") {
+                evt.preventDefault();
+                sendCommandButton("/stop")();
+            }
         });
 
         window.addEventListener("keydown", function (evt) {

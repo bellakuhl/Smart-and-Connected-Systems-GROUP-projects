@@ -14,7 +14,7 @@ export function DebugLog(props: IDebugLogProps) {
 
     React.useEffect(function () {
         socket.on("crawler-log", function (data: string) {
-            messages.push(data)
+            messages.unshift(data)
             setMessages([data]);
         });
     }, []);
