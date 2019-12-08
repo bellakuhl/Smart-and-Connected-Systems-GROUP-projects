@@ -271,11 +271,28 @@ static void crawl_autonomous_task()
                 last_pid_control = last_pid_control + 1 % pid_period_ms;
             }
 
-            // // Keep us going straight
-            // uint32_t diff = right_side_rear_dist - right_side_front_dist;
-            // int value = diff*7 + PWM_NEUTRAL_US;
-            // crawler_steering_set_value(value);
-            crawler_steering_set_value(PWM_NEUTRAL_US);
+            // Keep us going straight
+
+            if (right_side_front_dist < 70){
+                uint32_t difference = 72 - right_side_front_dist;
+                int value = difference*20 + PWM_NEUTRAL_US;
+                crawler_steering_set_value(value);
+            }
+            else if (right_side_front_dist > 74){
+                uint32_t difference = 72 - right_side_front_dist;
+                int value = difference*20 + PWM_NEUTRAL_US;
+                crawler_steering_set_value(value);
+            }
+            else{
+                uint32_t diff = right_side_rear_dist - right_side_front_dist;
+                int value = diff*7 + PWM_NEUTRAL_US;
+                crawler_steering_set_value(value);                
+            }
+
+            uint32_t diff = right_side_rear_dist - right_side_front_dist;
+            int value = diff*7 + PWM_NEUTRAL_US;
+            crawler_steering_set_value(value);
+            //crawler_steering_set_value(PWM_NEUTRAL_US);
 
             if (should_turn_left()) {
                 if (left_turn_count == 2) {
