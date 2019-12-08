@@ -405,7 +405,7 @@ static void crawler_cmd_recv()
                     break;
                 case CMD_GREEN_LIGHT:
                     msg.color='G'; msg.id=100;
-                    BaseType_t res = xQueueSendToBack(beaconMsgQueue, &msg, 5);
+                    xQueueSendToBack(beaconMsgQueue, &msg, 5);
                     break;
                 case CMD_START_AUTO:
                     crawler_state = CRAWL_STATE_AUTO;
