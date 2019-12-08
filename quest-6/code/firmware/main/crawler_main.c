@@ -380,7 +380,7 @@ static void crawler_cmd_recv()
                         alphadisplay_write_ascii(0, 'A');
                         alphadisplay_write_ascii(1, 'U');
                         alphadisplay_write_ascii(2, 'T');
-                        alphadisplay_write_ascii(3, '0');
+                        alphadisplay_write_ascii(3, 'O');
                         xTaskCreate(crawl_autonomous_task, "", 4096, NULL, configMAX_PRIORITIES-1, &crawler_auto_mode_task);
                     }
                     break;
@@ -393,6 +393,10 @@ static void crawler_cmd_recv()
                         vTaskDelete(crawler_auto_mode_task);
                         crawler_auto_mode_task = NULL;
                     }
+                    alphadisplay_write_ascii(0, 'R');
+                    alphadisplay_write_ascii(1, 'E');
+                    alphadisplay_write_ascii(2, 'D');
+                    alphadisplay_write_ascii(3, 'Y');
                     break;
                 case CMD_CALIBRATE:
                     crawler_calibrate();
@@ -435,7 +439,7 @@ void app_main()
     alphadisplay_write_ascii(2, 'B');
     alphadisplay_write_ascii(3, 'R');
     crawler_control_init();
-    // crawler_calibrate();
+    crawler_calibrate();
     crawler_steering_set_value(PWM_NEUTRAL_US);
     vTaskDelay(2000/portTICK_PERIOD_MS);
 
