@@ -51,12 +51,16 @@ App.get("/crawler-event", async function (req, resp) {
         dbQuery.time['$lte'] = query.until;
     }
 
+    let orderBy = query.orderBy || 'time';
+    let dir = query.sort == 'desc' ? -1 : 1;
+    let sort = {[orderBy]: dir};
+
     if (query.since && query.until && query.since > query.until) {
         return resp.status(422).json({message: "Error - since must be earlier than until."});
     }
 
     try {
-        let records = await db.crawlerEvent.query(dbQuery);
+        let records = await db.crawlerEvent.query(dbQuery, sort);
         resp.json({events: records});
     }
     catch(err) {

@@ -101,7 +101,7 @@ export function AccessLogGrid(props: ICrawlerEventProps) {
     function transformRecord(record: ICrawlerEventRecord): ICrawlerEventRow {
         let row: ICrawlerEventRow = Object.assign({}, record);
         row.date = new Date(record.time);
-        row.key = `${record.time}_${record.crawler_id}`;
+        row.key = `${Math.random() * 1000000}`;
         return row;
     }
 
@@ -186,7 +186,7 @@ export function AccessLogGrid(props: ICrawlerEventProps) {
                         </TableHead>
                         <TableBody>
                         {rows.map(row => (
-                            <TableRow key={row.time}>
+                            <TableRow key={row.key}>
                                 <TableCell component="th" scope="row">
                                     {row.date.toLocaleDateString()} {row.date.toLocaleTimeString()}
                                 </TableCell>

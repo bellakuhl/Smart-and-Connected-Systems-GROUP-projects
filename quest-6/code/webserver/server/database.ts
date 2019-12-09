@@ -74,10 +74,16 @@ function createCrawlerEvent(event: ICrawlerEventRecord)
 type cbError = Error|null;
 
 
-function  queryCrawlerEvent(query: ICrawlerEventQuery)
+function  queryCrawlerEvent(query: ICrawlerEventQuery, sort?: object)
 {
     return new Promise<ICrawlerEventRecord[]>(function (resolve, reject) {
-        collections['CrawlerEvent'].find(query).toArray(function (err: cbError, data: ICrawlerEventRecord[]) {
+        let q = collections['CrawlerEvent'].find(query);
+
+        if (sort) {
+            q = q.sort(sort);
+        }
+
+        q.toArray(function (err: cbError, data: ICrawlerEventRecord[]) {
             if (err) {
                 reject(err);
             }

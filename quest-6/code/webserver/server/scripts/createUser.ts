@@ -28,16 +28,20 @@ async function testQuery() {
 
 async function main() {
     await db.init();
-    await create_user("crawler15", "team15lastquest");
-    await create_user("admin", "team15");
-    /*
-    await log_event({
-        crawler_id: "crawler_15",
-        time: new Date().getTime(),
-        event: "START"
-    });*/
+    // await create_user("crawler15", "team15lastquest");
+    // await create_user("admin", "team15");
+    // /*
 
-    await testQuery();
+    for (let i = 0; i < 30; i++) {
+        await log_event({
+            crawler_id: "crawler_15",
+            time: new Date().getTime(),
+            event: "split",
+            split_time: Math.floor(Math.random() * 60)
+        });
+    }
+
+    // await testQuery();
 }
 
 main();
