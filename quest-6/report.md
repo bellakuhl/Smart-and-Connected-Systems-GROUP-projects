@@ -43,6 +43,8 @@ In order to drive autonomously, it is necessary that it is outfitted with a numb
 
 ## References
 
+* We referenced Emily Lam's [beacon code](https://github.com/BU-EC444/code-examples/tree/master/ir-car-beacon-capture) to program our own traffic light beacons for testing.
+* We referenced [this tutorial](https://www.raspberrypi.org/documentation/usage/webcams/) to setup webcam streaming on the Pi
 -----
 
 ## Reminders
