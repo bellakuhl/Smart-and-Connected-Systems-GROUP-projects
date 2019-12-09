@@ -68,3 +68,4 @@ sdkconfig
 sdkconfig.*
 node_modules/
 .vscode/
+*.db/
