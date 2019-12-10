@@ -32,12 +32,14 @@ async function main() {
     // await create_user("admin", "team15");
     // /*
 
-    for (let i = 0; i < 30; i++) {
+    let times = [0, 11.26, 59.09];
+    let time = new Date().getTime();
+    for (let i = 0; i < 3; i++) {
         await log_event({
             crawler_id: "crawler_15",
-            time: new Date().getTime(),
+            time: time + times[i]*1000,
             event: "split",
-            split_time: Math.floor(Math.random() * 60)
+            split_time: times[i]
         });
     }
 
