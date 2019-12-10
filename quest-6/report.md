@@ -93,7 +93,9 @@ Finally, the web interface shows the live feed from the Crawl-E Cam, a log of sp
 
 Finally, the Web UI, uses jsQR to decode the live stream on the web client. About once a second, it will try to parse the image for a QR code and display the result if decoded successfully.
 
-[beacons]
+### Beacons
+
+To receive commands from the IR transmitter "traffic light", we fixed an IR receiver to the front of the vehicle. It stays stopped when it's receiving "R" and then goes when it receives a "G" or "Y" signal. There are separate tasks for receiving messages from the beacon and interpreting them in the autonomous driving code. The receiving task will pass messages that it receives on a queue and the autonomous driving state machine will process and react to those messages appropriately. This is demonstrated in our video. One problem that we had was we couldn't get it to receive from >6 inches away, but it does read.
 
 ### Sensors
 
