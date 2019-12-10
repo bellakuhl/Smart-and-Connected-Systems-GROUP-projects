@@ -3,9 +3,7 @@ import * as React from "react";
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
 
-interface ICrawlerControlProps {
-
-}
+interface ICrawlerControlProps {}
 
 
 function sendCommandButton(endpoint: string, body?: any)
@@ -100,7 +98,7 @@ export function CrawlerControls(props: ICrawlerControlProps) {
 
             if (evt.key == "ArrowRight") {
                 postSteeringValue(Math.max(steeringValue - 100, PWM_MIN));
-                postSteeringValue(PWM_MIN);
+                // postSteeringValue(PWM_MIN);
             }
 
             if (evt.key == "ArrowUp") {
