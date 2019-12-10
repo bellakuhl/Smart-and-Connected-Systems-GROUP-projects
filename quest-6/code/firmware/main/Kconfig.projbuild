@@ -1,0 +1,49 @@
+menu "Crawler Config"
+    config WIFI_SSID
+        string "WiFi SSID"
+        default "Group_15"
+        help
+            SSID (network name) to connect to.
+
+    config WIFI_PASSPHRASE
+        string "WiFi Passphrase"
+        default "smart-systems"
+        help
+            Wifi passphrase
+
+    config SERVER_HOST
+        string "Server Host"
+        default "192.168.1.131"
+        help
+            The IP address of the client running the nodejs webserver
+
+    config SERVER_UDP_PORT
+        int "Server UDP Port"
+        default 9000
+        help
+            Port to send UDP messages to.
+
+    config SERVER_HTTP_PORT
+        int "Server Port"
+        default 8000
+        help
+            Port to send UDP messages to.
+
+    config CRAWLER_UDP_RECV_PORT
+        int "UDP Recv Port"
+        default 9000
+        help
+            The port on which to receive UDP messages.
+
+    config CRAWLER_USERNAME
+        string "Crawler ID"
+        default "crawler15"
+        help
+            The username the crawler uses to send messages to the server.
+
+    config CRAWLER_PASSWORD
+        string "Crawler Password"
+        default "team15lastquest"
+        help
+            The password the crawler uses to send messages to the server.
+endmenu
