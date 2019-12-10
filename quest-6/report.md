@@ -1,4 +1,4 @@
-# Quest Name
+# Crawler Rollup
 
 Authors: Isabella Kuhl, Laura Reeve, Joseph Rossi
 
@@ -8,7 +8,7 @@ Authors: Isabella Kuhl, Laura Reeve, Joseph Rossi
 
 In this final quest, our team implemented autonomous driving and web server control for our crawler by combining and building upon previous skills. More specifically, our crawler is able to detect traffic light beacons (provided by the instructors) and either stop or go, depending on the current light. It is also able to detect possible collisions and turn to avoid incoming obstacles, all without human interference. Finally, we used PID control to drive straight and maintain a desired speed. The final test for this project is a race course (Figure 1) featuring three traffic lights and a QR code finish line. The crawler must be able to complete this track, obeying the traffic lights, and switch to remote driving mode when it reaches the third light. From here the driver must drive up to the QR code finish line, scan and decode the image in order to complete the course.
 
-![Course](https://github.com/BU-EC444/Team15-Kuhl-Reeve-Rossi/blob/bk-quest6-dev/quest-6/images/course2019.png)
+![Course](./images/course2019.png)
 Figure 1
 
 ## Evaluation Criteria
@@ -24,20 +24,101 @@ In order to drive autonomously, it is necessary that it is outfitted with a numb
 
 ## Solution Design
 
-[webserver]
+### Webserver
+
+The webserver provides interface for controlling and monitoring monitoring the crawler. The webserver can send commands to the crawler via a UDP port and exposes and HTTP API so the WebUI be used as a remote control.  (Figure 2)
+
+<center>
+<img width="60%" src="./images/crawler_commands.png">
+<br />
+(Figure 2 - Sending Crawler Commands)
+
+<br />
+<br />
+<table>
+    <thead>
+        <tr>
+            <th>Action</th>
+            <th>Keys</th>
+            <th>Mode</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Auto Mode</td>
+            <td>a</td>
+            <td>Manual</td>
+        </tr>
+        <tr>
+            <td>Stop Auto Mode</td>
+            <td>p</td>
+            <td>Auto</td>
+        </tr>
+        <tr>
+            <td>Increment Forward</td>
+            <td>f</td>
+            <td>Manual</td>
+        </tr>
+        <tr>
+            <td>Reverse</td>
+            <td>r or b</td>
+            <td>Manual</td>
+        </tr>
+        <tr>
+            <td>Stop</td>
+            <td>s or space</td>
+            <td>Manual</td>
+        </tr>
+    </tbody>
+</table>
+</center>
+
+It also exposes and HTTP API for logging and viewing split times. For logging split times, the crawler uses the HTTP API instead of sending UDP packets. We chose this so logging split times would be more reliable.
+
+<center>
+<br/>
+<img width="60%" src="./images/split_times.png">
+<br />
+(Figure 3 - Logging Split Times)
+</center>
+
+For convenience when monitoring the crawler during development, the webpage also displays log messages send by the crawler over a UDP socket.
+
+ <center>
+<img width="60%" src="./images/debug_messages.png">
+<br />
+(Figure 4 - Sending log messages.)
+</center>
+
+Finally, the web interface shows the live feed from the Crawl-E Cam, a log of split times, and it will stream log messages sent by the crawler for remote debugging purposes.
+
+Finally, the Web UI, uses jsQR to decode the live stream on the web client. About once a second, it will try to parse the image for a QR code and display the result if decoded successfully.
 
 [beacons]
 
 [sensors]
 
+### Autonomous Driving
+
+Using the components described above, autonomous driving is implemented as the state machine depicted below:
+
+<center>
+<img width="80%" src="./images/state_machine.jpg">
+</center>
+
+The state machine is modeled to navigate the course (Figure 1) and is programmed make left turns when detecting walls. The exit conditions all reset to the initial state. Autonomous driving exits when one of three things happens:
+
+1. If collision hazard is detected, the crawler will stop.
+2. When the crawler encounters the third beacon, it will exit autonomous mode.
+3. If the crawler makes 2 left turns, it will stop the next time it detects that it should make a left. Per the course diagram, the third beacon will be along the third wall. If we hit a third left before encountering the third beacon, we missed a beacon, but should stop anyway.
+
 
 ## Sketches and Photos
-<center><img src="./images/example.png" width="70%" /></center>  
 <center> </center>
 
 
 ## Supporting Artifacts
-- [Link to repo]()
+- [Link to repo](https://github.com/BU-EC444/Team15-Kuhl-Reeve-Rossi/tree/master/quest-6)
 - [Link to video demo]()
 
 
