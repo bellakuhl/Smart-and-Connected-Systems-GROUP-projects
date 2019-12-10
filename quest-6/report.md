@@ -117,7 +117,9 @@ The state machine is modeled to navigate the course (Figure 1) and is programmed
 
 
 ## Sketches and Photos
-<center> </center>
+<center>
+<img width="80%" src="./images/crawler.jpg">
+</center>
 
 
 ## Supporting Artifacts
