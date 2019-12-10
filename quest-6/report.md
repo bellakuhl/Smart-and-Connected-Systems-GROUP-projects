@@ -21,7 +21,6 @@ The web server for this project had to be far more robust than previous quests i
 #### Sensor Functions
 In order to drive autonomously, it is necessary that it is outfitted with a number of sensors. The type and location of each sensor is up to the discretion of the team although the full system must accomplish the same tasks. One such task is PID control for speed and steering. This ensures the crawler is both driving straight as well as maintaining a constant, set speed. These sensors also must prevent front collisions, make appropriate left or right turns, and keep the crawler approximately 0.75 meters away from side walls. This distance is important as the traffic light beacons will be located this far from each wall. When a traffic light is detected the crawler should interpret the light using an IR receiver and react according to the current state (green–go, red–stop, yellow–slow down). Additionally, the split time between reaching each traffic light should be displayed on the vehicle using an alphanumeric display.
 
-
 ## Solution Design
 
 ### Webserver
@@ -96,7 +95,9 @@ Finally, the Web UI, uses jsQR to decode the live stream on the web client. Abou
 
 [beacons]
 
-[sensors]
+### Sensors
+
+We used three sensors on our car to prevent collisions and keep the car moving along a wall. On the front of our car, we used the lidar lite, which continuously detected the wall directly in front of the car. On the right side, we used two microlidars, one towards the frony and one in the back. To stay along a wall, we continuously compared the readings from these two microlidars and adjusted the car to keep them both at ~72 cm (to keep the beacon approximately 75 cm away from the wall). The lidar lite on the front of the car was used to determine when to turn. We calculated that it takes the car ~5 full wheel revolutions (approximately 2.5 meters in the whole arc) to make a 90 degree turn and it moves 2 full meters forward while making this turn. Due to this, we have the car start turning when it’s 2.7 meters away from the wall, so that it finishes turning when it’s ~75 cm from the wall.
 
 ### Autonomous Driving
 
@@ -119,7 +120,7 @@ The state machine is modeled to navigate the course (Figure 1) and is programmed
 
 ## Supporting Artifacts
 - [Link to repo](https://github.com/BU-EC444/Team15-Kuhl-Reeve-Rossi/tree/master/quest-6)
-- [Link to video demo]()
+- [Link to video demo](https://drive.google.com/open?id=1fIa-mVAMV1z9HD00lwvAziglSVO0Ey2P)
 
 
 ## References
